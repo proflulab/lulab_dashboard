@@ -1,0 +1,273 @@
+// 权限系统相关模型
+
+// 组织机构表
+model Organization {
+  id          String  @id @default(cuid())
+  name        String // 组织名称
+  code        String  @unique // 组织编码
+  description String? // 组织描述
+  parentId    String? // 父组织ID
+  level       Int     @default(1) // 组织层级
+  sortOrder   Int     @default(0) // 排序
+  active      Boolean @default(true) // 是否启用
+
+  // 自关联
+  parent   Organization?  @relation("OrganizationHierarchy", fields: [parentId], references: [id])
+  children Organization[] @relation("OrganizationHierarchy")
+
+  // 关联关系
+  departments Department[]
+  users       UserOrganization[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([parentId])
+  @@index([code])
+}
+
+// 部门表
+model Department {
+  id             String  @id @default(cuid())
+  name           String // 部门名称
+  code           String  @unique // 部门编码
+  description    String? // 部门描述
+  organizationId String // 所属组织ID
+  parentId       String? // 父部门ID
+  level          Int     @default(1) // 部门层级
+  sortOrder      Int     @default(0) // 排序
+  active         Boolean @default(true) // 是否启用
+
+  // 关联关系
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  parent       Department?      @relation("DepartmentHierarchy", fields: [parentId], references: [id])
+  children     Department[]     @relation("DepartmentHierarchy")
+  users        UserDepartment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([parentId])
+  @@index([code])
+}
+
+// 角色表
+model Role {
+  id          String   @id @default(cuid())
+  name        String // 角色名称
+  code        String   @unique // 角色编码
+  description String? // 角色描述
+  type        RoleType @default(CUSTOM) // 角色类型
+  level       Int      @default(1) // 角色级别，数字越小权限越高
+  active      Boolean  @default(true) // 是否启用
+  isDeleted   Boolean  @default(false)
+
+  // 关联关系
+  users           UserRole[]
+  permissions     RolePermission[]
+  dataPermissions RoleDataPermission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([code])
+  @@index([type])
+}
+
+// 角色类型枚举
+enum RoleType {
+  SYSTEM // 系统角色
+  CUSTOM // 自定义角色
+}
+
+// 权限表
+model Permission {
+  id          String         @id @default(cuid())
+  name        String // 权限名称
+  code        String         @unique // 权限编码
+  description String? // 权限描述
+  resource    String // 资源标识
+  action      String // 操作类型
+  type        PermissionType @default(MENU) // 权限类型
+  parentId    String? // 父权限ID
+  level       Int            @default(1) // 权限层级
+  sortOrder   Int            @default(0) // 排序
+  active      Boolean        @default(true) // 是否启用
+
+  // 自关联
+  parent   Permission?  @relation("PermissionHierarchy", fields: [parentId], references: [id])
+  children Permission[] @relation("PermissionHierarchy")
+
+  // 关联关系
+  roles RolePermission[]
+  users UserPermission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([code])
+  @@index([resource])
+  @@index([type])
+  @@index([parentId])
+}
+
+// 权限类型枚举
+enum PermissionType {
+  MENU // 菜单权限
+  BUTTON // 按钮权限
+  API // 接口权限
+  DATA // 数据权限
+  FIELD // 字段权限
+}
+
+// 用户组织关联表
+model UserOrganization {
+  id             String  @id @default(cuid())
+  userId         String // 用户ID
+  organizationId String // 组织ID
+  isPrimary      Boolean @default(false) // 是否主要组织
+
+  // 关联关系
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, organizationId])
+  @@index([userId])
+  @@index([organizationId])
+}
+
+// 用户部门关联表
+model UserDepartment {
+  id           String  @id @default(cuid())
+  userId       String // 用户ID
+  departmentId String // 部门ID
+  isPrimary    Boolean @default(false) // 是否主要部门
+
+  // 关联关系
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, departmentId])
+  @@index([userId])
+  @@index([departmentId])
+}
+
+// 用户角色关联表
+model UserRole {
+  id     String @id @default(cuid())
+  userId String // 用户ID
+  roleId String // 角色ID
+
+  // 关联关系
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+}
+
+// 角色权限关联表
+model RolePermission {
+  id           String @id @default(cuid())
+  roleId       String // 角色ID
+  permissionId String // 权限ID
+
+  // 关联关系
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+}
+
+// 用户权限关联表（用于特殊权限授权）
+model UserPermission {
+  id           String  @id @default(cuid())
+  userId       String // 用户ID
+  permissionId String // 权限ID
+  granted      Boolean @default(true) // 是否授权（true: 授权, false: 拒绝）
+
+  // 关联关系
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, permissionId])
+  @@index([userId])
+  @@index([permissionId])
+}
+
+// 数据权限规则表
+model DataPermissionRule {
+  id          String  @id @default(cuid())
+  name        String // 规则名称
+  code        String  @unique // 规则编码
+  description String? // 规则描述
+  resource    String // 资源标识
+  condition   String // 权限条件（JSON格式）
+  active      Boolean @default(true) // 是否启用
+
+  // 关联关系
+  roles RoleDataPermission[]
+  users UserDataPermission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([code])
+  @@index([resource])
+}
+
+// 角色数据权限关联表
+model RoleDataPermission {
+  id     String @id @default(cuid())
+  roleId String // 角色ID
+  ruleId String // 数据权限规则ID
+
+  // 关联关系
+  role Role               @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  rule DataPermissionRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([roleId, ruleId])
+  @@index([roleId])
+  @@index([ruleId])
+}
+
+// 用户数据权限关联表
+model UserDataPermission {
+  id      String  @id @default(cuid())
+  userId  String // 用户ID
+  ruleId  String // 数据权限规则ID
+  granted Boolean @default(true) // 是否授权
+
+  // 关联关系
+  user User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rule DataPermissionRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, ruleId])
+  @@index([userId])
+  @@index([ruleId])
+}

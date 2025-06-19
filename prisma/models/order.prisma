@@ -1,0 +1,63 @@
+// 退款记录表
+model OrderRefund {
+    id                 Int       @id @default(autoincrement()) // 内部主键
+    afterSaleCode      String? // 售后编号
+    orderId            Int? // 所属订单ID
+    submittedAt        DateTime? // 提交时间
+    refundedAt         DateTime? // 退款时间
+    refundChannel      String? // 退款渠道枚举值，如 '抖音平台退款'
+    approvalUrl        String? // 审批链接
+    createdBy          String? // 登记人（系统用户ID）
+    refundAmount       Decimal?  @db.Decimal(10, 2) // 退款金额
+    refundReason       String? // 退款原因描述
+    benefitEndedAt     DateTime? @db.Date // 权益终止时间
+    benefitUsedDays    Int? // 实际权益使用天数
+    applicantName      String? // 申请人姓名
+    isFinancialSettled Boolean   @default(false) // 财务结算状态
+    financialSettledAt DateTime? @db.Date // 财务结算时间
+    financialNote      String? // 结算备注
+    parentId           Int? // 父退款记录ID（如有）
+    productCategory    String? // 产品类别（冗余存储）
+    createdAt          DateTime  @default(now()) // 创建时间
+    updatedAt          DateTime  @updatedAt // 更新时间
+
+    // 关联关系
+    order        Order?        @relation(fields: [orderId], references: [id])
+    creator      User?         @relation("RefundCreator", fields: [createdBy], references: [id])
+    parentRefund OrderRefund?  @relation("RefundHierarchy", fields: [parentId], references: [id])
+    childRefunds OrderRefund[] @relation("RefundHierarchy")
+}
+
+// 订单表
+model Order {
+    id                   Int       @id @default(autoincrement()) // 内部主键
+    orderCode            String    @unique // 系统生成的订单编号
+    externalOrderId      String? // 外部平台订单编号
+    productId            Int? // 产品ID（外键）
+    productName          String? // 产品标题（冗余存储）
+    customerEmail        String? // 用户邮箱
+    userId               String? // 用户ID（外键）
+    currentOwnerId       String? // 当前负责人（系统用户ID）
+    financialCloserId    String? // 财务结单人（系统用户ID）
+    financialClosedAt    DateTime? // 财务结单时间
+    financialClosed      Boolean   @default(false) // 是否财务结单
+    amountPaid           Decimal?  @db.Decimal(10, 2) // 实际支付金额
+    currency             String? // 币种 (CNY, USD)
+    amountPaidCny        Decimal?  @db.Decimal(10, 2) // 折算后的人民币金额
+    paidAt               DateTime? // 支付时间
+    effectiveDate        DateTime? @db.Date // 生效时间
+    benefitStartDate     DateTime? @db.Date // 权益开始时间
+    benefitDurationDays  Int? // 权益时长（天）
+    activeDays           Int? // 在籍时长（天）
+    benefitDaysRemaining Int? // 权益剩余时间（天）
+
+    // 关联关系
+    product         Product?      @relation(fields: [productId], references: [id])
+    user            User?         @relation("UserOrders", fields: [userId], references: [id])
+    currentOwner    User?         @relation("CurrentOwnerOrders", fields: [currentOwnerId], references: [id])
+    financialCloser User?         @relation("FinancialCloserOrders", fields: [financialCloserId], references: [id])
+    refunds         OrderRefund[] // 订单的退款记录
+
+    createdAt DateTime @default(now()) // 创建时间
+    updatedAt DateTime @updatedAt // 更新时间
+}
