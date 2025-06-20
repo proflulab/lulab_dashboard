@@ -2,405 +2,284 @@
  * @Author: 杨仕明 shiming.y@qq.com
  * @Date: 2025-06-15 20:26:06
  * @LastEditors: 杨仕明 shiming.y@qq.com
- * @LastEditTime: 2025-06-18 03:50:39
+ * @LastEditTime: 2025-06-20 13:46:53
  * @FilePath: /lulab_dashboard/prisma/seed.ts
- * @Description: 
+ * @Description: 数据库种子数据主协调脚本
  * 
  * Copyright (c) 2025 by ${git_name_email}, All Rights Reserved. 
  */
-import { PrismaClient, ProductCategory, ProductStatus, $Enums } from '@prisma/client'
-import bcrypt from 'bcryptjs'
-// 注释掉不需要的导入，seed脚本不需要session
+import { PrismaClient } from '@prisma/client'
+import { createUsers } from './seeds/users'
+import { createPermissions } from './seeds/permissions'
+import { createOrganization } from './seeds/organization'
+import { createDepartments } from './seeds/departments'
+import { createProducts } from './seeds/products'
+import { createOrders } from './seeds/orders'
+import { createRefunds } from './seeds/refunds'
 
 const prisma = new PrismaClient()
 
-async function main() {
-  console.log('开始数据库种子数据初始化...')
+/**
+ * 清理数据库所有数据并删除表结构
+ * 按照外键依赖关系的逆序删除，避免外键约束错误
+ */
+async function cleanDatabase() {
+  console.log('🧹 开始清理数据库...')
 
-  // 创建用户
-  const hashedPassword = await bcrypt.hash('admin123', 10)
-  const userPassword = await bcrypt.hash('user123', 10)
+  try {
+    // 第一步：按照依赖关系逆序删除数据
+    // 1. 删除退款记录
+    await prisma.orderRefund.deleteMany({})
+    console.log('✅ 已清理退款记录')
 
-  // 创建管理员用户
-  const adminUser = await prisma.user.upsert({
-    where: { email: 'admin@lulab.com' },
-    update: {},
-    create: {
-      email: 'admin@lulab.com',
-      name: '系统管理员',
-      password: hashedPassword,
-      emailVerifiedAt: new Date(),
-      countryCode: '+86',
-      phone: '13800138000',
-      phoneVerifiedAt: new Date(),
-    },
-  })
+    // 2. 删除订单
+    await prisma.order.deleteMany({})
+    console.log('✅ 已清理订单')
 
-  // 创建财务用户
-  const financeUser = await prisma.user.upsert({
-    where: { email: 'finance@lulab.com' },
-    update: {},
-    create: {
-      email: 'finance@lulab.com',
-      name: '财务专员',
-      password: hashedPassword,
-      emailVerifiedAt: new Date(),
-      countryCode: '+86',
-      phone: '13800138001',
-      phoneVerifiedAt: new Date(),
-    },
-  })
+    // 3. 删除产品
+    await prisma.product.deleteMany({})
+    console.log('✅ 已清理产品')
 
-  // 创建客服用户
-  const customerServiceUser = await prisma.user.upsert({
-    where: { email: 'service@lulab.com' },
-    update: {},
-    create: {
-      email: 'service@lulab.com',
-      name: '客服专员',
-      password: hashedPassword,
-      emailVerifiedAt: new Date(),
-      countryCode: '+86',
-      phone: '13800138002',
-      phoneVerifiedAt: new Date(),
-    },
-  })
+    // 4. 删除用户权限关联
+    await prisma.userPermission.deleteMany({})
+    await prisma.userDataPermission.deleteMany({})
+    await prisma.userRole.deleteMany({})
+    await prisma.userDepartment.deleteMany({})
+    await prisma.userOrganization.deleteMany({})
+    console.log('✅ 已清理用户权限关联')
 
-  // 创建普通用户
-  const normalUsers = []
-  for (let i = 1; i <= 5; i++) {
-    const user = await prisma.user.upsert({
-      where: { email: `user${i}@example.com` },
-      update: {},
-      create: {
-        email: `user${i}@example.com`,
-        name: `用户${i}`,
-        password: userPassword,
-        emailVerifiedAt: new Date(),
-        countryCode: '+86',
-        phone: `1380013800${i.toString().padStart(2, '0')}`,
-        phoneVerifiedAt: new Date(),
-      },
-    })
-    normalUsers.push(user)
+    // 5. 删除角色权限关联
+    await prisma.rolePermission.deleteMany({})
+    await prisma.roleDataPermission.deleteMany({})
+    console.log('✅ 已清理角色权限关联')
+
+    // 6. 删除认证相关
+    await prisma.authenticator.deleteMany({})
+    await prisma.session.deleteMany({})
+    await prisma.account.deleteMany({})
+    await prisma.verificationToken.deleteMany({})
+    console.log('✅ 已清理认证数据')
+
+    // 7. 删除用户
+    await prisma.user.deleteMany({})
+    console.log('✅ 已清理用户')
+
+    // 8. 删除部门
+    await prisma.department.deleteMany({})
+    console.log('✅ 已清理部门')
+
+    // 9. 删除组织
+    await prisma.organization.deleteMany({})
+    console.log('✅ 已清理组织')
+
+    // 10. 删除权限
+    await prisma.permission.deleteMany({})
+    console.log('✅ 已清理权限')
+
+    // 11. 删除角色
+    await prisma.role.deleteMany({})
+    console.log('✅ 已清理角色')
+
+    console.log('🎉 数据库清理完成！')
+  } catch (error) {
+    console.error('❌ 数据库清理失败:', error)
+    throw error
   }
-
-  console.log('用户创建完成')
-
-  // 创建基础角色
-  console.log('创建基础角色...')
-  const roles = {
-    admin: await prisma.role.upsert({
-      where: { code: 'ADMIN' },
-      update: {},
-      create: {
-        name: '管理员',
-        code: 'ADMIN',
-        description: '系统管理员，拥有大部分管理权限',
-        level: 1,
-        type: $Enums.RoleType.SYSTEM,
-      },
-    }),
-    finance: await prisma.role.upsert({
-      where: { code: 'FINANCE' },
-      update: {},
-      create: {
-        name: '财务',
-        code: 'FINANCE',
-        description: '财务人员，拥有财务相关权限',
-        level: 3,
-        type: $Enums.RoleType.CUSTOM,
-      },
-    }),
-    customerService: await prisma.role.upsert({
-      where: { code: 'CUSTOMER_SERVICE' },
-      update: {},
-      create: {
-        name: '客服',
-        code: 'CUSTOMER_SERVICE',
-        description: '客服人员，拥有客户服务权限',
-        level: 4,
-        type: $Enums.RoleType.CUSTOM,
-      },
-    }),
-    user: await prisma.role.upsert({
-      where: { code: 'USER' },
-      update: {},
-      create: {
-        name: '普通用户',
-        code: 'USER',
-        description: '普通用户，基础查看权限',
-        level: 5,
-        type: $Enums.RoleType.CUSTOM,
-      },
-    }),
-  }
-
-  console.log('角色创建完成')
-
-  // 为用户分配角色
-  console.log('为用户分配角色...')
-
-  // 管理员用户分配管理员角色
-  await prisma.userRole.upsert({
-    where: {
-      userId_roleId: {
-        userId: adminUser.id,
-        roleId: roles.admin.id,
-      },
-    },
-    update: {},
-    create: {
-      userId: adminUser.id,
-      roleId: roles.admin.id,
-    },
-  })
-
-  // 财务用户分配财务角色
-  await prisma.userRole.upsert({
-    where: {
-      userId_roleId: {
-        userId: financeUser.id,
-        roleId: roles.finance.id,
-      },
-    },
-    update: {},
-    create: {
-      userId: financeUser.id,
-      roleId: roles.finance.id,
-    },
-  })
-
-  // 客服用户分配客服角色
-  await prisma.userRole.upsert({
-    where: {
-      userId_roleId: {
-        userId: customerServiceUser.id,
-        roleId: roles.customerService.id,
-      },
-    },
-    update: {},
-    create: {
-      userId: customerServiceUser.id,
-      roleId: roles.customerService.id,
-    },
-  })
-
-  // 普通用户分配普通用户角色
-  for (const user of normalUsers) {
-    await prisma.userRole.upsert({
-      where: {
-        userId_roleId: {
-          userId: user.id,
-          roleId: roles.user.id,
-        },
-      },
-      update: {},
-      create: {
-        userId: user.id,
-        roleId: roles.user.id,
-      },
-    })
-  }
-
-  console.log('用户角色分配完成')
-
-  // 创建产品
-  const products = [
-    {
-      productCode: 'COURSE-001',
-      name: 'Python编程基础课程',
-      description: '从零开始学习Python编程，适合初学者的完整课程体系',
-      shortDescription: 'Python编程入门课程',
-      category: ProductCategory.COURSE,
-      status: ProductStatus.ACTIVE,
-      price: 299.00,
-      originalPrice: 399.00,
-      currency: 'CNY',
-      durationDays: 365,
-      maxUsers: 1000,
-      tags: ['编程', 'Python', '基础'],
-      imageUrl: 'https://example.com/python-course.jpg',
-      sortOrder: 1,
-      isRecommended: true,
-      isFeatured: true,
-      salesCount: 150,
-      viewCount: 2500,
-      rating: 4.8,
-      reviewCount: 120,
-      createdBy: adminUser.id,
-      publishedAt: new Date(),
-    },
-    {
-      productCode: 'MEMBERSHIP-001',
-      name: '年度VIP会员',
-      description: '享受全站课程免费学习，专属客服支持，优先技术答疑',
-      shortDescription: '年度VIP会员权益',
-      category: ProductCategory.MEMBERSHIP,
-      status: ProductStatus.ACTIVE,
-      price: 1999.00,
-      originalPrice: 2999.00,
-      currency: 'CNY',
-      durationDays: 365,
-      maxUsers: 500,
-      tags: ['会员', 'VIP', '全站'],
-      imageUrl: 'https://example.com/vip-membership.jpg',
-      sortOrder: 2,
-      isRecommended: true,
-      isFeatured: false,
-      salesCount: 80,
-      viewCount: 1200,
-      rating: 4.9,
-      reviewCount: 65,
-      createdBy: adminUser.id,
-      publishedAt: new Date(),
-    },
-    {
-      productCode: 'CONSULT-001',
-      name: '一对一技术咨询',
-      description: '资深工程师一对一技术指导，解决实际项目问题',
-      shortDescription: '一对一技术咨询服务',
-      category: ProductCategory.CONSULTATION,
-      status: ProductStatus.ACTIVE,
-      price: 500.00,
-      originalPrice: 600.00,
-      currency: 'CNY',
-      durationDays: 30,
-      maxUsers: 1,
-      tags: ['咨询', '一对一', '技术指导'],
-      imageUrl: 'https://example.com/consultation.jpg',
-      sortOrder: 3,
-      isRecommended: false,
-      isFeatured: true,
-      salesCount: 25,
-      viewCount: 800,
-      rating: 5.0,
-      reviewCount: 20,
-      createdBy: adminUser.id,
-      publishedAt: new Date(),
-    },
-    {
-      productCode: 'MATERIAL-001',
-      name: '前端开发资料包',
-      description: '包含HTML、CSS、JavaScript等前端开发必备资料和模板',
-      shortDescription: '前端开发资料包',
-      category: ProductCategory.MATERIAL,
-      status: ProductStatus.ACTIVE,
-      price: 99.00,
-      originalPrice: 149.00,
-      currency: 'CNY',
-      durationDays: null,
-      maxUsers: null,
-      tags: ['前端', '资料', '模板'],
-      imageUrl: 'https://example.com/frontend-materials.jpg',
-      downloadUrl: 'https://example.com/download/frontend-pack.zip',
-      sortOrder: 4,
-      isRecommended: false,
-      isFeatured: false,
-      salesCount: 200,
-      viewCount: 3000,
-      rating: 4.5,
-      reviewCount: 180,
-      createdBy: adminUser.id,
-      publishedAt: new Date(),
-    },
-  ]
-
-  const createdProducts = []
-  for (const productData of products) {
-    const product = await prisma.product.upsert({
-      where: { productCode: productData.productCode },
-      update: {},
-      create: productData,
-    })
-    createdProducts.push(product)
-  }
-
-  console.log('产品创建完成')
-
-  // 创建订单
-  const orders = []
-  for (let i = 0; i < 10; i++) {
-    const user = normalUsers[i % normalUsers.length]
-    const product = createdProducts[i % createdProducts.length]
-    const orderDate = new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000) // 最近30天内的随机日期
-
-    const order = await prisma.order.create({
-      data: {
-        orderCode: `ORD-${Date.now()}-${i.toString().padStart(3, '0')}`,
-        externalOrderId: `EXT-${Math.random().toString(36).substr(2, 9)}`,
-        // productId: product.id, // 注释掉，因为schema中可能没有这个字段
-        productName: product.name,
-        customerEmail: user.email,
-        userId: user.id,
-        currentOwnerId: customerServiceUser.id,
-        financialCloserId: i < 5 ? financeUser.id : null,
-        financialClosedAt: i < 5 ? new Date() : null,
-        financialClosed: i < 5,
-        amountPaid: product.price,
-        currency: product.currency,
-        amountPaidCny: product.price,
-        paidAt: orderDate,
-        effectiveDate: orderDate,
-        benefitStartDate: orderDate,
-        benefitDurationDays: product.durationDays,
-        activeDays: Math.floor(Math.random() * (product.durationDays || 30)),
-        benefitDaysRemaining: product.durationDays ? product.durationDays - Math.floor(Math.random() * 30) : null,
-        createdAt: orderDate,
-      },
-    })
-    orders.push(order)
-  }
-
-  console.log('订单创建完成')
-
-  // 创建退款记录
-  const refunds = []
-  for (let i = 0; i < 3; i++) {
-    const order = orders[i]
-    const refundDate = new Date(order.createdAt.getTime() + Math.random() * 7 * 24 * 60 * 60 * 1000) // 订单创建后7天内
-
-    const refund = await prisma.orderRefund.create({
-      data: {
-        afterSaleCode: `AS-${Date.now()}-${i.toString().padStart(3, '0')}`,
-        orderId: order.id,
-        submittedAt: refundDate,
-        refundedAt: i < 2 ? new Date(refundDate.getTime() + 24 * 60 * 60 * 1000) : null, // 前两个已退款
-        refundChannel: i === 0 ? '抖音平台退款' : i === 1 ? '微信退款' : '支付宝退款',
-        approvalUrl: `https://example.com/approval/${i}`,
-        createdBy: customerServiceUser.id,
-        refundAmount: order.amountPaid,
-        refundReason: i === 0 ? '课程内容不符合预期' : i === 1 ? '重复购买' : '个人原因',
-        benefitEndedAt: refundDate,
-        benefitUsedDays: Math.floor(Math.random() * 10),
-        applicantName: `申请人${i + 1}`,
-        isFinancialSettled: i < 2,
-        financialSettledAt: i < 2 ? new Date() : null,
-        financialNote: i < 2 ? '退款已处理完成' : null,
-        productCategory: order.productName?.includes('课程') ? 'COURSE' : 'OTHER',
-        createdAt: refundDate,
-      },
-    })
-    refunds.push(refund)
-  }
-
-  console.log('退款记录创建完成')
-
-  console.log('数据库种子数据初始化完成！')
-  console.log(`创建了 ${normalUsers.length + 3} 个用户`)
-  console.log(`创建了 4 个角色`)
-  console.log(`分配了 ${normalUsers.length + 3} 个用户角色关联`)
-  console.log(`创建了 ${createdProducts.length} 个产品`)
-  console.log(`创建了 ${orders.length} 个订单`)
-  console.log(`创建了 ${refunds.length} 个退款记录`)
 }
 
-main()
-  .then(async () => {
-    await prisma.$disconnect()
-  })
-  .catch(async (e) => {
-    console.error(e)
-    await prisma.$disconnect()
-    process.exit(1)
-  })
+/**
+ * 删除所有表结构
+ * @param force 是否强制删除（生产环境需要显式确认）
+ */
+async function dropAllTables(force: boolean = false) {
+  // 生产环境安全检查
+  if (!force && process.env.NODE_ENV === 'production') {
+    throw new Error('生产环境下删除表需要显式确认，请使用 force: true 参数')
+  }
+
+  console.log('🗑️ 开始删除表结构...')
+
+  try {
+    // 按照依赖关系逆序删除表（PostgreSQL使用CASCADE自动处理依赖）
+    const tables = [
+      'OrderRefund',
+      'Order',
+      'Product',
+      'UserPermission',
+      'UserDataPermission',
+      'UserRole',
+      'UserDepartment',
+      'UserOrganization',
+      'RolePermission',
+      'RoleDataPermission',
+      'Authenticator',
+      'Session',
+      'Account',
+      'VerificationToken',
+      'User',
+      'Department',
+      'Organization',
+      'Permission',
+      'Role'
+    ]
+
+    for (const table of tables) {
+      try {
+        await prisma.$executeRawUnsafe(`DROP TABLE IF EXISTS "${table}" CASCADE;`)
+        console.log(`✅ 已删除表: ${table}`)
+      } catch (error) {
+        console.warn(`⚠️ 删除表 ${table} 时出现警告:`, error)
+      }
+    }
+
+    console.log('🎉 表结构删除完成！')
+  } catch (error) {
+    console.error('❌ 删除表结构失败:', error)
+    throw error
+  }
+}
+
+/**
+ * 重置数据库：先清理再初始化
+ */
+async function resetDatabase() {
+  console.log('🔄 开始重置数据库...')
+
+  try {
+    // 1. 清理现有数据
+    await cleanDatabase()
+
+    // 2. 重新初始化数据
+    await seedDatabase()
+
+    console.log('🎉 数据库重置完成！')
+  } catch (error) {
+    console.error('❌ 数据库重置失败:', error)
+    throw error
+  }
+}
+
+/**
+ * 初始化种子数据
+ */
+async function seedDatabase() {
+  console.log('🚀 开始数据库种子数据初始化...')
+
+  try {
+    // 1. 创建用户和基础角色
+    console.log('\n📝 步骤 1: 创建用户和基础角色')
+    const userData = await createUsers(prisma)
+
+    // 2. 创建权限和完整角色体系
+    console.log('\n🔐 步骤 2: 创建权限和完整角色体系')
+    const permissionData = await createPermissions(prisma)
+
+    // 3. 创建组织和部门结构
+    console.log('\n🏢 步骤 3: 创建组织和部门结构')
+    const organization = await createOrganization(prisma)
+    const departments = await createDepartments(prisma, organization.id)
+    const organizationData = { organization, departments }
+
+    // 4. 创建产品数据
+    console.log('\n📦 步骤 4: 创建产品数据')
+    const productData = await createProducts(prisma, userData.adminUser)
+
+    // 5. 创建订单数据
+    console.log('\n🛒 步骤 5: 创建订单数据')
+    const orders = await createOrders(prisma, {
+      users: userData,
+      products: productData.products
+    })
+
+    // 6. 创建退款数据
+    console.log('\n💰 步骤 6: 创建退款数据')
+    const refunds = await createRefunds(prisma, {
+      users: userData,
+      orders: orders
+    })
+
+    // 输出统计信息
+    console.log('\n✅ 数据库种子数据初始化完成！')
+    console.log('\n📊 统计信息:')
+    console.log(`👥 用户: ${userData.normalUsers.length + 3} 个`)
+    console.log(`🎭 角色: ${Object.keys(permissionData.roles).length} 个`)
+    console.log(`🔑 权限: ${permissionData.permissions.length} 个`)
+    console.log(`🏢 组织: 1 个`)
+    console.log(`🏬 部门: ${Object.keys(organizationData.departments).length} 个`)
+    console.log(`📦 产品: ${productData.products.length} 个`)
+    console.log(`🛒 订单: ${orders.length} 个`)
+    console.log(`💰 退款: ${refunds.length} 个`)
+
+  } catch (error) {
+    console.error('❌ 种子数据初始化失败:', error)
+    throw error
+  }
+}
+
+async function main() {
+  // 获取命令行参数
+  const args = process.argv.slice(2)
+  const command = args[0] || 'seed'
+
+  try {
+    switch (command) {
+      case 'clean':
+        await cleanDatabase()
+        break
+      case 'drop':
+        // 检查是否有force参数
+        const forceFlag = process.argv.includes('--force')
+        await dropAllTables(forceFlag)
+        break
+      case 'reset':
+        await resetDatabase()
+        break
+      case 'seed':
+      default:
+        await seedDatabase()
+        break
+    }
+  } catch (error) {
+    console.error('❌ 操作失败:', error)
+    throw error
+  }
+}
+
+// 导出函数以便在其他模块中使用
+export { cleanDatabase, dropAllTables, resetDatabase, seedDatabase }
+
+// 如果直接运行此文件，则执行main函数
+if (require.main === module) {
+  main()
+    .then(async () => {
+      await prisma.$disconnect()
+    })
+    .catch(async (e) => {
+      console.error(e)
+      await prisma.$disconnect()
+      process.exit(1)
+    })
+}
+
+/*
+ * 使用说明:
+ * 
+ * 1. 初始化种子数据（默认）:
+ *    npx tsx prisma/seed.ts
+ *    或
+ *    npx tsx prisma/seed.ts seed
+ * 
+ * 2. 清理数据库:
+ *    npx tsx prisma/seed.ts clean
+ * 
+ * 3. 删除所有表结构:
+ *    npx tsx prisma/seed.ts drop
+ * 
+ * 4. 重置数据库（清理 + 初始化）:
+ *    npx tsx prisma/seed.ts reset
+ * 
+ * 生产环境安全选项:
+ *    npx tsx prisma/seed.ts drop --force  # 强制删除表（生产环境）
+ * 
+ * 注意：清理和重置操作会删除所有数据，请谨慎使用！
+ */
