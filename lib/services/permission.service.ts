@@ -445,3 +445,17 @@ export class PermissionService {
     return rootPermissions as Permission[]
   }
 }
+
+// 导出服务实例，包装静态方法
+export const permissionService = {
+  getUserPermissionInfo: PermissionService.getUserPermissionInfo,
+  checkPermission: PermissionService.checkPermission,
+  checkResourceAccess: PermissionService.checkResourceAccess,
+  checkRoleLevel: PermissionService.checkRoleLevel,
+  checkOrganization: PermissionService.checkOrganization,
+  checkDepartment: PermissionService.checkDepartment,
+  getUserMenuPermissions: PermissionService.getUserMenuPermissions,
+  getDataPermissionFilters: PermissionService.getDataPermissionFilters,
+  checkMultiplePermissions: PermissionService.checkMultiplePermissions,
+  getUserPermissionTree: PermissionService.getUserPermissionTree
+}

@@ -8,10 +8,11 @@
 lib/
 ├── db.ts              # 统一的服务导出入口
 ├── services/
-│   ├── order.service.ts   # 订单相关操作
-│   ├── refund.service.ts  # 退款相关操作
-│   ├── user.service.ts    # 用户相关操作
-│   └── README.md          # 说明文档
+│   ├── order.service.ts     # 订单相关操作
+│   ├── refund.service.ts    # 退款相关操作
+│   ├── user.service.ts      # 用户相关操作
+│   ├── dashboard.service.ts # 仪表板统计数据操作
+│   └── README.md            # 说明文档
 └── ...
 ```
 
@@ -21,11 +22,12 @@ lib/
 
 ```typescript
 // 导入单个服务
-import { orderService, refundService, userService } from '@/lib/db'
+import { orderService, refundService, userService, dashboardService } from '@/lib/db'
 
 // 或者导入默认对象
 import services from '@/lib/db'
 const orders = await services.order.getAll()
+const stats = await services.dashboard.getStats()
 ```
 
 ### 方式二：直接导入特定服务
@@ -34,6 +36,7 @@ const orders = await services.order.getAll()
 import { orderService } from '@/lib/services/order.service'
 import { refundService } from '@/lib/services/refund.service'
 import { userService } from '@/lib/services/user.service'
+import { dashboardService } from '@/lib/services/dashboard.service'
 ```
 
 ## 服务说明
@@ -66,6 +69,13 @@ import { userService } from '@/lib/services/user.service'
 - `update(id, data)` - 更新用户信息
 - `delete(id)` - 删除用户
 
+### dashboardService
+仪表板统计数据相关操作，包括：
+- `getStats()` - 获取仪表板核心统计数据（用户数、订单数、收入等）
+- `getTrends()` - 获取趋势数据（增长率等）
+- `getChartData(days)` - 获取图表数据（每日订单、月收入、用户注册等）
+- `getUserActivityStats()` - 获取用户活跃度统计
+
 ## 扩展指南
 
 当需要添加新的业务领域服务时：
@@ -81,7 +91,7 @@ import { userService } from '@/lib/services/user.service'
 
 **新代码推荐使用：**
 ```typescript
-import { orderService, refundService, userService } from '@/lib/db'
+import { orderService, refundService, userService, dashboardService } from '@/lib/db'
 ```
 
 **或者按需导入：**

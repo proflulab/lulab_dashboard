@@ -1,4 +1,4 @@
-import { prisma } from '../prisma'
+import { prisma } from '@/lib/prisma'
 
 // 订单相关操作
 export const orderService = {

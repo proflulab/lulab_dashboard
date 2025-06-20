@@ -1,4 +1,4 @@
-import { prisma } from '../prisma'
+import { prisma } from '@/lib/prisma'
 import { Gender } from '@prisma/client'
 
 // 用户相关操作
@@ -13,6 +13,13 @@ export const userService = {
       },
       include: {
         profile: true, // 包含用户详细信息
+        orders: {
+          where: {
+            paidAt: {
+              not: null
+            }
+          }
+        }, // 包含用户的已支付订单
         roles: {
           include: {
             role: true,
@@ -115,9 +122,9 @@ export const userService = {
         countryCode: data.countryCode,
         phone: data.phone,
         active: data.active ?? true,
-        profile: data.name || data.avatar || data.bio || data.firstName || data.lastName || 
-                data.dateOfBirth || data.gender || data.address || data.city || 
-                data.country || data.zipCode || data.website ? {
+        profile: data.name || data.avatar || data.bio || data.firstName || data.lastName ||
+          data.dateOfBirth || data.gender || data.address || data.city ||
+          data.country || data.zipCode || data.website ? {
           create: {
             name: data.name,
             avatar: data.avatar,
@@ -178,18 +185,18 @@ export const userService = {
     }
 
     // 分离用户基本信息和profile信息
-    const { name, avatar, bio, firstName, lastName, dateOfBirth, gender, 
-            address, city, country, zipCode, website, ...userData } = data
+    const { name, avatar, bio, firstName, lastName, dateOfBirth, gender,
+      address, city, country, zipCode, website, ...userData } = data
 
     const profileData = {
-      name, avatar, bio, firstName, lastName, dateOfBirth, 
+      name, avatar, bio, firstName, lastName, dateOfBirth,
       gender, address, city, country, zipCode, website
     }
 
     // 过滤掉undefined的profile字段
-     const filteredProfileData = Object.fromEntries(
-       Object.entries(profileData).filter(([, value]) => value !== undefined)
-     )
+    const filteredProfileData = Object.fromEntries(
+      Object.entries(profileData).filter(([, value]) => value !== undefined)
+    )
 
     return await prisma.user.update({
       where: { id },
