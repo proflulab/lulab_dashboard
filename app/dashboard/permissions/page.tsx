@@ -1,10 +1,10 @@
+
+'use client'
+
 /*
  * 权限管理页面
  * 用于管理用户权限、角色和组织结构
  */
-
-'use client'
-
 import React, { useState, useEffect, useMemo } from 'react'
 import Image from 'next/image'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -58,6 +58,7 @@ import {
 /**
  * 权限管理主页面
  */
+
 export default function PermissionsPage() {
   const { loading } = useUserPermissions()
   const { hasPermission: canManagePermissions } = usePermission('permissions.manage')
@@ -141,16 +142,21 @@ export default function PermissionsPage() {
 // 用户数据类型定义
 interface User {
   id: string
-  name?: string
   email: string
   phone?: string
   countryCode?: string
-  avatar?: string
   active: boolean
   emailVerifiedAt?: Date
   phoneVerifiedAt?: Date
   createdAt: Date
   updatedAt: Date
+  profile?: {
+    name?: string
+    avatar?: string
+    bio?: string
+    firstName?: string
+    lastName?: string
+  }
   roles: {
     role: {
       id: string
@@ -226,7 +232,7 @@ function UserManagement({ canManage, searchTerm }: { canManage: boolean; searchT
   // 过滤用户
   const filteredUsers = useMemo(() => {
     return users.filter(user =>
-      (user.name?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
+      (user.profile?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (user.phone?.includes(searchTerm) || false)
     )
@@ -362,7 +368,7 @@ function UserManagement({ canManage, searchTerm }: { canManage: boolean; searchT
   const openEditDialog = (user: User) => {
     setSelectedUser(user)
     setFormData({
-      name: user.name || '',
+      name: user.profile?.name || '',
       email: user.email,
       phone: user.phone || '',
       countryCode: user.countryCode || '+86',
@@ -433,14 +439,14 @@ function UserManagement({ canManage, searchTerm }: { canManage: boolean; searchT
                 <TableRow key={user.id}>
                   <TableCell className="font-medium">
                     <div className="flex items-center space-x-2">
-                      {user.avatar ? (
-                        <Image src={user.avatar} alt={user.name || '用户头像'} width={32} height={32} className="w-8 h-8 rounded-full" />
+                      {user.profile?.avatar ? (
+                        <Image src={user.profile.avatar} alt={user.profile?.name || '用户头像'} width={32} height={32} className="w-8 h-8 rounded-full" />
                       ) : (
                         <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
                           <Users className="w-4 h-4 text-gray-500" />
                         </div>
                       )}
-                      <span>{user.name || '未设置'}</span>
+                      <span>{user.profile?.name || '未设置'}</span>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -782,7 +788,7 @@ function UserManagement({ canManage, searchTerm }: { canManage: boolean; searchT
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-xs text-muted-foreground">姓名</Label>
-                    <p className="text-sm">{selectedUser.name || '未设置'}</p>
+                    <p className="text-sm">{selectedUser.profile?.name || '未设置'}</p>
                   </div>
                   <div>
                     <Label className="text-xs text-muted-foreground">邮箱</Label>
