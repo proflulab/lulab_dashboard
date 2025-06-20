@@ -2,7 +2,7 @@
  * @Author: 杨仕明 shiming.y@qq.com
  * @Date: 2025-06-20 04:09:42
  * @LastEditors: 杨仕明 shiming.y@qq.com
- * @LastEditTime: 2025-06-20 04:09:42
+ * @LastEditTime: 2025-06-20 16:23:20
  * @FilePath: /lulab_dashboard/prisma/seeds/refunds.ts
  * @Description: 退款种子数据
  * 
@@ -41,7 +41,7 @@ export async function createRefunds(prisma: PrismaClient, params: CreateRefundsP
         refundReason: '学员因个人原因申请部分退款',
         benefitEndedAt: new Date('2024-01-25'),
         benefitUsedDays: 10,
-        applicantName: normalUsers[0].name || '学员A',
+        applicantName: '学员A',
         isFinancialSettled: true,
         financialSettledAt: new Date('2024-01-30'),
         financialNote: '已完成退款处理',
@@ -64,7 +64,7 @@ export async function createRefunds(prisma: PrismaClient, params: CreateRefundsP
         refundReason: '服务质量不满意，申请全额退款',
         benefitEndedAt: new Date('2024-03-05'),
         benefitUsedDays: 4,
-        applicantName: normalUsers[3].name || '学员D',
+        applicantName: '学员D',
         isFinancialSettled: true,
         financialSettledAt: new Date('2024-03-08'),
         financialNote: '全额退款已处理',
@@ -87,7 +87,7 @@ export async function createRefunds(prisma: PrismaClient, params: CreateRefundsP
         refundReason: '学员搬家，无法继续学习',
         benefitEndedAt: null,
         benefitUsedDays: 74,
-        applicantName: normalUsers[2].name || '学员C',
+        applicantName: '学员C',
         isFinancialSettled: false,
         financialSettledAt: null,
         financialNote: null,
@@ -110,7 +110,7 @@ export async function createRefunds(prisma: PrismaClient, params: CreateRefundsP
         refundReason: '已下载资料，不符合退款条件',
         benefitEndedAt: null,
         benefitUsedDays: 5,
-        applicantName: normalUsers[4].name || '学员E',
+        applicantName: '学员E',
         isFinancialSettled: true,
         financialSettledAt: new Date('2024-02-22'),
         financialNote: '退款申请被拒绝',

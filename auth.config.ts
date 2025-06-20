@@ -38,6 +38,7 @@ const authConfig = {
               active: true     // 只查询激活的用户
             },
             include: {
+              profile: true,
               roles: {
                 where: {
                   role: {
@@ -71,7 +72,7 @@ const authConfig = {
 
           return {
             id: user.id,
-            name: user.name,
+            name: user.profile?.name,
             email: user.email,
             role: primaryRole,
           }

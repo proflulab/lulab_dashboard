@@ -1,4 +1,5 @@
 import { prisma } from '../prisma'
+import { Gender } from '@prisma/client'
 
 // 用户相关操作
 export const userService = {
@@ -11,6 +12,7 @@ export const userService = {
         createdAt: 'desc',
       },
       include: {
+        profile: true, // 包含用户详细信息
         roles: {
           include: {
             role: true,
@@ -37,6 +39,7 @@ export const userService = {
         deletedAt: null, // 只获取未删除的用户
       },
       include: {
+        profile: true, // 包含用户详细信息
         orders: true,
         currentOwnerOrders: true,
         financialCloserOrders: true,
@@ -75,6 +78,7 @@ export const userService = {
         deletedAt: null, // 只获取未删除的用户
       },
       include: {
+        profile: true, // 包含用户详细信息
         roles: {
           include: {
             role: true,
@@ -85,25 +89,53 @@ export const userService = {
   },
 
   async create(data: {
-    name?: string
     email: string
     password?: string
     countryCode?: string
     phone?: string
-    avatar?: string
     active?: boolean
+    // Profile data
+    name?: string
+    avatar?: string
+    bio?: string
+    firstName?: string
+    lastName?: string
+    dateOfBirth?: Date
+    gender?: Gender
+    address?: string
+    city?: string
+    country?: string
+    zipCode?: string
+    website?: string
   }) {
     return await prisma.user.create({
       data: {
-        name: data.name,
         email: data.email,
         password: data.password,
         countryCode: data.countryCode,
         phone: data.phone,
-        avatar: data.avatar,
         active: data.active ?? true,
+        profile: data.name || data.avatar || data.bio || data.firstName || data.lastName || 
+                data.dateOfBirth || data.gender || data.address || data.city || 
+                data.country || data.zipCode || data.website ? {
+          create: {
+            name: data.name,
+            avatar: data.avatar,
+            bio: data.bio,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            dateOfBirth: data.dateOfBirth,
+            gender: data.gender,
+            address: data.address,
+            city: data.city,
+            country: data.country,
+            zipCode: data.zipCode,
+            website: data.website,
+          }
+        } : undefined,
       },
       include: {
+        profile: true,
         roles: {
           include: {
             role: true,
@@ -114,39 +146,64 @@ export const userService = {
   },
 
   async update(id: string, data: Partial<{
-    name: string
     email: string
     password: string
     countryCode: string
     phone: string
-    avatar: string
     active: boolean
     emailVerifiedAt: Date
     phoneVerifiedAt: Date
+    // Profile data
+    name: string
+    avatar: string
+    bio: string
+    firstName: string
+    lastName: string
+    dateOfBirth: Date
+    gender: Gender
+    address: string
+    city: string
+    country: string
+    zipCode: string
+    website: string
   }>) {
     // 先检查用户是否存在且未删除
     const existingUser = await prisma.user.findFirst({
-      where: { id, deletedAt: null }
+      where: { id, deletedAt: null },
+      include: { profile: true }
     })
 
     if (!existingUser) {
       throw new Error('User not found or has been deleted')
     }
 
+    // 分离用户基本信息和profile信息
+    const { name, avatar, bio, firstName, lastName, dateOfBirth, gender, 
+            address, city, country, zipCode, website, ...userData } = data
+
+    const profileData = {
+      name, avatar, bio, firstName, lastName, dateOfBirth, 
+      gender, address, city, country, zipCode, website
+    }
+
+    // 过滤掉undefined的profile字段
+     const filteredProfileData = Object.fromEntries(
+       Object.entries(profileData).filter(([, value]) => value !== undefined)
+     )
+
     return await prisma.user.update({
       where: { id },
       data: {
-        name: data.name,
-        email: data.email,
-        password: data.password,
-        countryCode: data.countryCode,
-        phone: data.phone,
-        avatar: data.avatar,
-        active: data.active,
-        emailVerifiedAt: data.emailVerifiedAt,
-        phoneVerifiedAt: data.phoneVerifiedAt,
+        ...userData,
+        profile: Object.keys(filteredProfileData).length > 0 ? {
+          upsert: {
+            create: filteredProfileData,
+            update: filteredProfileData,
+          }
+        } : undefined,
       },
       include: {
+        profile: true,
         roles: {
           include: {
             role: true,
@@ -203,6 +260,7 @@ export const userService = {
         deletedAt: null,
       },
       include: {
+        profile: true, // 包含用户详细信息
         roles: {
           include: {
             role: true,

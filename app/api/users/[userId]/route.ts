@@ -12,15 +12,26 @@ import bcrypt from 'bcryptjs'
 
 // 更新用户请求参数验证模式
 const updateUserSchema = z.object({
-  name: z.string().optional(),
   email: z.string().email('邮箱格式不正确').optional(),
   password: z.string().min(6, '密码至少6位').optional(),
   countryCode: z.string().optional(),
   phone: z.string().optional(),
-  avatar: z.string().optional(),
   active: z.boolean().optional(),
   emailVerifiedAt: z.string().transform(val => val ? new Date(val) : undefined).optional(),
-  phoneVerifiedAt: z.string().transform(val => val ? new Date(val) : undefined).optional()
+  phoneVerifiedAt: z.string().transform(val => val ? new Date(val) : undefined).optional(),
+  // Profile fields
+  name: z.string().optional(),
+  avatar: z.string().optional(),
+  bio: z.string().optional(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  dateOfBirth: z.string().transform(val => val ? new Date(val) : undefined).optional(),
+  gender: z.enum(['MALE', 'FEMALE', 'OTHER', 'PREFER_NOT_TO_SAY']).optional(),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  country: z.string().optional(),
+  zipCode: z.string().optional(),
+  website: z.string().optional()
 })
 
 /**

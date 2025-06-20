@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-    
+
     const validatedData = checkPermissionSchema.parse(body)
 
     // 检查权限

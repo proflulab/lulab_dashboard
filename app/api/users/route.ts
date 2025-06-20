@@ -12,13 +12,24 @@ import bcrypt from 'bcryptjs'
 
 // 创建用户请求参数验证模式
 const createUserSchema = z.object({
-  name: z.string().optional(),
   email: z.string().email('邮箱格式不正确'),
   password: z.string().min(6, '密码至少6位').optional(),
   countryCode: z.string().optional(),
   phone: z.string().optional(),
+  active: z.boolean().default(true),
+  // Profile fields
+  name: z.string().optional(),
   avatar: z.string().optional(),
-  active: z.boolean().default(true)
+  bio: z.string().optional(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  dateOfBirth: z.string().transform(val => val ? new Date(val) : undefined).optional(),
+  gender: z.enum(['MALE', 'FEMALE', 'OTHER', 'PREFER_NOT_TO_SAY']).optional(),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  country: z.string().optional(),
+  zipCode: z.string().optional(),
+  website: z.string().optional()
 })
 
 /**
@@ -61,7 +72,9 @@ export async function GET(request: NextRequest) {
     let filteredUsers = users
     if (search) {
       filteredUsers = users.filter(user =>
-        user.name?.toLowerCase().includes(search.toLowerCase()) ||
+        user.profile?.name?.toLowerCase().includes(search.toLowerCase()) ||
+        user.profile?.firstName?.toLowerCase().includes(search.toLowerCase()) ||
+        user.profile?.lastName?.toLowerCase().includes(search.toLowerCase()) ||
         user.email.toLowerCase().includes(search.toLowerCase()) ||
         user.phone?.includes(search)
       )

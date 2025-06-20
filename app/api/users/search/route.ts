@@ -89,7 +89,9 @@ export async function POST(request: NextRequest) {
     if (validatedData.query) {
       const query = validatedData.query.toLowerCase()
       filteredUsers = filteredUsers.filter(user =>
-        user.name?.toLowerCase().includes(query) ||
+        user.profile?.name?.toLowerCase().includes(query) ||
+        user.profile?.firstName?.toLowerCase().includes(query) ||
+        user.profile?.lastName?.toLowerCase().includes(query) ||
         user.email.toLowerCase().includes(query) ||
         user.phone?.includes(query)
       )
@@ -144,8 +146,8 @@ export async function POST(request: NextRequest) {
 
       switch (validatedData.sortBy) {
         case 'name':
-          aValue = a.name || ''
-          bValue = b.name || ''
+          aValue = a.profile?.name || ''
+          bValue = b.profile?.name || ''
           break
         case 'email':
           aValue = a.email
