@@ -17,16 +17,16 @@ enum ProductStatus {
 
 // 产品表
 model Product {
-    id               Int             @id @default(autoincrement()) // 内部主键
+    id               String          @id @default(cuid()) // 内部主键
     productCode      String          @unique // 产品编号
     name             String // 产品名称
     description      String? // 产品描述
     shortDescription String? // 简短描述
     category         ProductCategory // 产品分类
     status           ProductStatus   @default(DRAFT) // 产品状态
-    price            Decimal?        @db.Decimal(10, 2) // 价格
-    originalPrice    Decimal?        @db.Decimal(10, 2) // 原价
-    currency         String          @default("CNY") // 币种
+    price            Int? // 价格（分为单位）
+    originalPrice    Int? // 原价（分为单位）
+    currency         Currency        @default(CNY) // 币种
     durationDays     Int? // 有效期天数
     maxUsers         Int? // 最大用户数限制
     tags             String[] // 标签数组

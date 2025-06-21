@@ -1,8 +1,8 @@
 // 退款记录表
 model OrderRefund {
-    id                 Int       @id @default(autoincrement()) // 内部主键
+    id                 String    @id @default(cuid()) // 内部主键
     afterSaleCode      String? // 售后编号
-    orderId            Int? // 所属订单ID
+    orderId            String? // 所属订单ID
     submittedAt        DateTime? // 提交时间
     refundedAt         DateTime? // 退款时间
     refundChannel      String? // 退款渠道枚举值，如 '抖音平台退款'
@@ -16,7 +16,7 @@ model OrderRefund {
     isFinancialSettled Boolean   @default(false) // 财务结算状态
     financialSettledAt DateTime? @db.Date // 财务结算时间
     financialNote      String? // 结算备注
-    parentId           Int? // 父退款记录ID（如有）
+    parentId           String? // 父退款记录ID（如有）
     productCategory    String? // 产品类别（冗余存储）
     createdAt          DateTime  @default(now()) // 创建时间
     updatedAt          DateTime  @updatedAt // 更新时间
@@ -26,4 +26,9 @@ model OrderRefund {
     creator      User?         @relation("RefundCreator", fields: [createdBy], references: [id])
     parentRefund OrderRefund?  @relation("RefundHierarchy", fields: [parentId], references: [id])
     childRefunds OrderRefund[] @relation("RefundHierarchy")
+
+    @@index([orderId]) // 订单退款查询
+    @@index([createdBy]) // 创建人查询
+    @@index([isFinancialSettled]) // 财务结算状态
+    @@index([submittedAt]) // 提交时间查询
 }
