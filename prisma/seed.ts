@@ -13,6 +13,9 @@ import { createUsers } from './seeds/users'
 import { createPermissions } from './seeds/permissions'
 import { createOrganization } from './seeds/organization'
 import { createDepartments } from './seeds/departments'
+import { createChannels } from './seeds/channels'
+import { createProjects } from './seeds/projects'
+import { createCurriculums } from './seeds/curriculums'
 import { createProducts } from './seeds/products'
 import { createOrders } from './seeds/orders'
 import { createRefunds } from './seeds/refunds'
@@ -40,7 +43,19 @@ async function cleanDatabase() {
     await prisma.product.deleteMany({})
     console.log('✅ 已清理产品')
 
-    // 4. 删除用户权限关联
+    // 4. 删除课程
+    await prisma.curriculum.deleteMany({})
+    console.log('✅ 已清理课程')
+
+    // 5. 删除项目
+    await prisma.project.deleteMany({})
+    console.log('✅ 已清理项目')
+
+    // 6. 删除渠道
+    await prisma.channel.deleteMany({})
+    console.log('✅ 已清理渠道')
+
+    // 7. 删除用户权限关联
     await prisma.userPermission.deleteMany({})
     await prisma.userDataPermission.deleteMany({})
     await prisma.userRole.deleteMany({})
@@ -48,35 +63,39 @@ async function cleanDatabase() {
     await prisma.userOrganization.deleteMany({})
     console.log('✅ 已清理用户权限关联')
 
-    // 5. 删除角色权限关联
+    // 8. 删除角色权限关联
     await prisma.rolePermission.deleteMany({})
     await prisma.roleDataPermission.deleteMany({})
     console.log('✅ 已清理角色权限关联')
 
-    // 6. 删除认证相关
+    // 9. 删除认证相关
     await prisma.authenticator.deleteMany({})
     await prisma.session.deleteMany({})
     await prisma.account.deleteMany({})
     await prisma.verificationToken.deleteMany({})
     console.log('✅ 已清理认证数据')
 
-    // 7. 删除用户
+    // 10. 删除用户档案
+    await prisma.userProfile.deleteMany({})
+    console.log('✅ 已清理用户档案')
+
+    // 11. 删除用户
     await prisma.user.deleteMany({})
     console.log('✅ 已清理用户')
 
-    // 8. 删除部门
+    // 12. 删除部门
     await prisma.department.deleteMany({})
     console.log('✅ 已清理部门')
 
-    // 9. 删除组织
+    // 13. 删除组织
     await prisma.organization.deleteMany({})
     console.log('✅ 已清理组织')
 
-    // 10. 删除权限
+    // 14. 删除权限
     await prisma.permission.deleteMany({})
     console.log('✅ 已清理权限')
 
-    // 11. 删除角色
+    // 15. 删除角色
     await prisma.role.deleteMany({})
     console.log('✅ 已清理角色')
 
@@ -105,6 +124,9 @@ async function dropAllTables(force: boolean = false) {
       'OrderRefund',
       'Order',
       'Product',
+      'Curriculum',
+      'Project',
+      'Channel',
       'UserPermission',
       'UserDataPermission',
       'UserRole',
@@ -116,6 +138,7 @@ async function dropAllTables(force: boolean = false) {
       'Session',
       'Account',
       'VerificationToken',
+      'UserProfile',
       'User',
       'Department',
       'Organization',
@@ -180,19 +203,34 @@ async function seedDatabase() {
     const departments = await createDepartments(prisma, organization.id)
     const organizationData = { organization, departments }
 
-    // 4. 创建产品数据
-    console.log('\n📦 步骤 4: 创建产品数据')
-    const productData = await createProducts(prisma, userData.adminUser)
+    // 4. 创建渠道数据
+    console.log('\n📺 步骤 4: 创建渠道数据')
+    const channelData = await createChannels(prisma)
 
-    // 5. 创建订单数据
-    console.log('\n🛒 步骤 5: 创建订单数据')
-    const orders = await createOrders(prisma, {
-      users: userData,
-      products: productData.products
+    // 5. 创建项目数据
+    console.log('\n📚 步骤 5: 创建项目数据')
+    const projectData = await createProjects(prisma)
+
+    // 6. 创建课程数据
+    console.log('\n📖 步骤 6: 创建课程数据')
+    const curriculumData = await createCurriculums(prisma, {
+      projects: projectData.projects
     })
 
-    // 6. 创建退款数据
-    console.log('\n💰 步骤 6: 创建退款数据')
+    // 7. 创建产品数据
+    console.log('\n📦 步骤 7: 创建产品数据')
+    const productData = await createProducts(prisma, userData.adminUser)
+
+    // 8. 创建订单数据
+    console.log('\n🛒 步骤 8: 创建订单数据')
+    const orders = await createOrders(prisma, {
+      users: userData,
+      products: productData.products,
+      channels: channelData.channels
+    })
+
+    // 9. 创建退款数据
+    console.log('\n💰 步骤 9: 创建退款数据')
     const refunds = await createRefunds(prisma, {
       users: userData,
       orders: orders
@@ -206,6 +244,9 @@ async function seedDatabase() {
     console.log(`🔑 权限: ${permissionData.permissions.length} 个`)
     console.log(`🏢 组织: 1 个`)
     console.log(`🏬 部门: ${Object.keys(organizationData.departments).length} 个`)
+    console.log(`📺 渠道: ${channelData.channels.length} 个`)
+    console.log(`📚 项目: ${projectData.projects.length} 个`)
+    console.log(`📖 课程: ${curriculumData.curriculums.length} 个`)
     console.log(`📦 产品: ${productData.products.length} 个`)
     console.log(`🛒 订单: ${orders.length} 个`)
     console.log(`💰 退款: ${refunds.length} 个`)

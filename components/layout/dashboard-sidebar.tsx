@@ -19,11 +19,11 @@ import {
 } from "@/components/ui/sidebar"
 import {
   LayoutDashboard,
-  Users,
-  BookOpen,
+  // Users, // 暂时不需要
+  // BookOpen, // 暂时不需要
   // GraduationCap, // 暂时不需要
   Settings,
-  BarChart,
+  // BarChart, // 暂时不需要
   // ShoppingCart, // 暂时不需要
   ChevronRight,
   // Shield, // 暂时不需要
@@ -114,22 +114,52 @@ const menuItems = [
       // },
       {
         title: "权限管理",
-        url: "/dashboard/permissions",
+        url: "/dashboard/perms",
         permission: "permissions.view",
       },
     ],
   },
 ]
 
+interface OrganizationInfo {
+  id: string
+  name: string
+  code: string
+}
+
 export function DashboardSidebar() {
   const pathname = usePathname()
   const { state } = useSidebar()
-  // const { data: _session } = useSession() // 暂时不需要
   const [openGroups, setOpenGroups] = useState<string[]>([])
   const [isClient, setIsClient] = useState(false)
+  const [organizationInfo, setOrganizationInfo] = useState<OrganizationInfo>({
+    id: '',
+    name: '',
+    code: ''
+  })
 
   useEffect(() => {
     setIsClient(true)
+
+    // 获取组织信息
+    const fetchOrganizationInfo = async () => {
+      try {
+        const response = await fetch('/api/organization')
+        if (response.ok) {
+          const orgData = await response.json()
+          setOrganizationInfo({
+            id: orgData.id,
+            name: orgData.name,
+            code: orgData.code.charAt(0).toUpperCase() // 取组织代码的第一个字母作为图标
+          })
+        }
+      } catch (error) {
+        console.error('获取组织信息失败:', error)
+        // 保持默认值
+      }
+    }
+
+    fetchOrganizationInfo()
   }, [])
 
   const toggleGroup = (groupTitle: string) => {
@@ -155,11 +185,11 @@ export function DashboardSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="px-4 py-4 group-data-[collapsible=icon]:px-2 h-16">
         <div className="flex items-center space-x-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:space-x-0 h-full">
-          <div className="w-8 h-8 group-data-[collapsible=icon]:w-6 group-data-[collapsible=icon]:h-6 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm group-data-[collapsible=icon]:text-xs">L</span>
+          <div className="w-8 h-8 group-data-[collapsible=icon]:w-6 group-data-[collapsible=icon]:h-6 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0 aspect-square">
+            <span className="text-white font-bold text-sm group-data-[collapsible=icon]:text-xs">{organizationInfo.code}</span>
           </div>
           <div className="transition-all duration-300 ease-in-out group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:overflow-hidden">
-            <h2 className="text-lg font-semibold whitespace-nowrap">陆向谦实验室</h2>
+            <h2 className="text-lg font-semibold whitespace-nowrap">{organizationInfo.name}</h2>
             <p className="text-xs text-muted-foreground whitespace-nowrap">管理系统</p>
           </div>
         </div>

@@ -8,7 +8,7 @@
  * 
  * Copyright (c) 2025 by ${git_name_email}, All Rights Reserved. 
  */
-import { PrismaClient, Product, User } from '@prisma/client'
+import { PrismaClient, Product, User, Channel } from '@prisma/client'
 
 interface CreateOrdersParams {
   users: {
@@ -17,11 +17,11 @@ interface CreateOrdersParams {
     normalUsers: User[]
   }
   products: Product[]
+  channels: Channel[]
 }
 
 export async function createOrders(prisma: PrismaClient, params: CreateOrdersParams) {
-
-  const { users, products } = params
+  const { users, products, channels } = params
   const { adminUser, financeUser, normalUsers } = users
 
   // 验证数据
@@ -39,24 +39,33 @@ export async function createOrders(prisma: PrismaClient, params: CreateOrdersPar
     return `ORD${timestamp}${index.toString().padStart(3, '0')}`
   }
 
+  // 生成订单号码的辅助函数
+  const generateOrderNumber = (index: number) => {
+    const date = new Date().toISOString().slice(0, 10).replace(/-/g, '')
+    const timestamp = Date.now().toString().slice(-6)
+    return `${date}${timestamp}${index.toString().padStart(3, '0')}`
+  }
+
   // 创建订单数据
   const orders = await Promise.all([
     // 已支付的课程订单
     prisma.order.create({
       data: {
         orderCode: generateOrderCode(1),
+        orderNumber: generateOrderNumber(1),
         externalOrderId: 'DY_20240115_001',
         productId: products[0].id, // Python 课程
         productName: products[0].name,
         customerEmail: normalUsers[0].email,
         userId: normalUsers[0].id,
+        channelId: channels[1].id, // 抖音小店
         currentOwnerId: financeUser.id,
         financialCloserId: adminUser.id,
         financialClosedAt: new Date('2024-01-20'),
         financialClosed: true,
-        amountPaid: 299.00,
+        amount: 29900, // 299.00 yuan in cents
         currency: 'CNY',
-        amountPaidCny: 299.00,
+        amountCny: 29900,
         paidAt: new Date('2024-01-15 10:30:00'),
         effectiveDate: new Date('2024-01-15'),
         benefitStartDate: new Date('2024-01-15'),
@@ -70,18 +79,20 @@ export async function createOrders(prisma: PrismaClient, params: CreateOrdersPar
     prisma.order.create({
       data: {
         orderCode: generateOrderCode(2),
-        externalOrderId: 'DY_20240201_002',
+        orderNumber: generateOrderNumber(2),
+        externalOrderId: 'WX_20240201_002',
         productId: products[1].id, // JavaScript 课程
         productName: products[1].name,
         customerEmail: normalUsers[1].email,
         userId: normalUsers[1].id,
+        channelId: channels[2].id, // 微信小程序
         currentOwnerId: financeUser.id,
         financialCloserId: adminUser.id,
         financialClosedAt: new Date('2024-02-05'),
         financialClosed: true,
-        amountPaid: 599.00,
+        amount: 49900, // 499.00 yuan in cents
         currency: 'CNY',
-        amountPaidCny: 599.00,
+        amountCny: 49900,
         paidAt: new Date('2024-02-01 14:20:00'),
         effectiveDate: new Date('2024-02-01'),
         benefitStartDate: new Date('2024-02-01'),
@@ -95,18 +106,20 @@ export async function createOrders(prisma: PrismaClient, params: CreateOrdersPar
     prisma.order.create({
       data: {
         orderCode: generateOrderCode(3),
-        externalOrderId: 'DY_20240101_003',
-        productId: products[2].id, // 年度会员
-        productName: products[2].name,
+        orderNumber: generateOrderNumber(3),
+        externalOrderId: 'OFF_20240101_003',
+        productId: products[3].id, // 年度会员
+        productName: products[3].name,
         customerEmail: normalUsers[2].email,
         userId: normalUsers[2].id,
+        channelId: channels[0].id, // 官方网站
         currentOwnerId: financeUser.id,
         financialCloserId: adminUser.id,
         financialClosedAt: new Date('2024-01-05'),
         financialClosed: true,
-        amountPaid: 1299.00,
+        amount: 99900, // 999.00 yuan in cents
         currency: 'CNY',
-        amountPaidCny: 1299.00,
+        amountCny: 99900,
         paidAt: new Date('2024-01-01 09:15:00'),
         effectiveDate: new Date('2024-01-01'),
         benefitStartDate: new Date('2024-01-01'),
@@ -120,18 +133,20 @@ export async function createOrders(prisma: PrismaClient, params: CreateOrdersPar
     prisma.order.create({
       data: {
         orderCode: generateOrderCode(4),
-        externalOrderId: 'DY_20240301_004',
-        productId: products[3].id, // 职业规划咨询
-        productName: products[3].name,
+        orderNumber: generateOrderNumber(4),
+        externalOrderId: 'TB_20240301_004',
+        productId: products[4].id, // 一对一技术咨询
+        productName: products[4].name,
         customerEmail: normalUsers[3].email,
         userId: normalUsers[3].id,
+        channelId: channels[3].id, // 淘宝店铺
         currentOwnerId: financeUser.id,
         financialCloserId: null,
         financialClosedAt: null,
         financialClosed: false,
-        amountPaid: 199.00,
+        amount: 19900, // 199.00 yuan in cents
         currency: 'CNY',
-        amountPaidCny: 199.00,
+        amountCny: 19900,
         paidAt: new Date('2024-03-01 16:45:00'),
         effectiveDate: new Date('2024-03-01'),
         benefitStartDate: new Date('2024-03-01'),
@@ -141,22 +156,24 @@ export async function createOrders(prisma: PrismaClient, params: CreateOrdersPar
       }
     }),
 
-    // 资料包订单
+    // 实战项目订单
     prisma.order.create({
       data: {
         orderCode: generateOrderCode(5),
-        externalOrderId: 'DY_20240215_005',
-        productId: products[4].id, // 编程面试题库
-        productName: products[4].name,
+        orderNumber: generateOrderNumber(5),
+        externalOrderId: 'PART_20240215_005',
+        productId: products[5].id, // 企业级项目实战
+        productName: products[5].name,
         customerEmail: normalUsers[4].email,
         userId: normalUsers[4].id,
+        channelId: channels[5].id, // 合作伙伴
         currentOwnerId: financeUser.id,
         financialCloserId: adminUser.id,
         financialClosedAt: new Date('2024-02-20'),
         financialClosed: true,
-        amountPaid: 99.00,
+        amount: 79900, // 799.00 yuan in cents
         currency: 'CNY',
-        amountPaidCny: 99.00,
+        amountCny: 79900,
         paidAt: new Date('2024-02-15 11:30:00'),
         effectiveDate: new Date('2024-02-15'),
         benefitStartDate: new Date('2024-02-15'),
@@ -170,18 +187,20 @@ export async function createOrders(prisma: PrismaClient, params: CreateOrdersPar
     prisma.order.create({
       data: {
         orderCode: generateOrderCode(6),
-        externalOrderId: 'DY_20240320_006',
-        productId: products[0].id, // Python 课程
-        productName: products[0].name,
+        orderNumber: generateOrderNumber(6),
+        externalOrderId: 'OFF_20240320_006',
+        productId: products[2].id, // 数据分析与可视化
+        productName: products[2].name,
         customerEmail: 'student6@example.com',
         userId: null, // 未注册用户
+        channelId: channels[4].id, // 线下推广
         currentOwnerId: financeUser.id,
         financialCloserId: null,
         financialClosedAt: null,
         financialClosed: false,
-        amountPaid: 299.00,
+        amount: 39900, // 399.00 yuan in cents
         currency: 'CNY',
-        amountPaidCny: 299.00,
+        amountCny: 39900,
         paidAt: new Date('2024-03-20 13:20:00'),
         effectiveDate: new Date('2024-03-20'),
         benefitStartDate: new Date('2024-03-20'),
@@ -195,18 +214,20 @@ export async function createOrders(prisma: PrismaClient, params: CreateOrdersPar
     prisma.order.create({
       data: {
         orderCode: generateOrderCode(7),
+        orderNumber: generateOrderNumber(7),
         externalOrderId: 'STRIPE_20240310_007',
         productId: products[1].id, // JavaScript 课程
         productName: products[1].name,
         customerEmail: 'international@example.com',
         userId: null,
+        channelId: channels[0].id, // 官方网站
         currentOwnerId: financeUser.id,
         financialCloserId: adminUser.id,
         financialClosedAt: new Date('2024-03-15'),
         financialClosed: true,
-        amountPaid: 85.00,
+        amount: 7000, // 70.00 USD in cents
         currency: 'USD',
-        amountPaidCny: 599.00, // 按汇率折算
+        amountCny: 49900, // 499.00 yuan in cents (按汇率折算)
         paidAt: new Date('2024-03-10 08:45:00'),
         effectiveDate: new Date('2024-03-10'),
         benefitStartDate: new Date('2024-03-10'),
