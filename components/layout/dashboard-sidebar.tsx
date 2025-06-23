@@ -51,23 +51,28 @@ const menuItems = [
       }
     ],
   },
-  // {
-  //   title: "用户管理",
-  //   groupIcon: Users,
-  //   permission: "users.view",
-  //   items: [
-  //     {
-  //       title: "会员管理",
-  //       url: "/dashboard/students",
-  //       permission: "users.view",
-  //     },
-  //     {
-  //       title: "教师管理",
-  //       url: "/dashboard/teachers",
-  //       permission: "users.view",
-  //     },
-  //   ],
-  // },
+  {
+    title: "组织架构",
+    groupIcon: LayoutDashboard,
+    permission: "dashboard.view",
+    items: [
+      {
+        title: "成员与部门",
+        url: "/dashboard/contacts/departmentanduser",
+        permission: "dashboard.view",
+      },
+      {
+        title: "角色管理",
+        url: "/dashboard/roles",
+        permission: "dashboard.view",
+      },
+      {
+        title: "组织管理",
+        url: "/dashboard/perms",
+        permission: "dashboard.view",
+      },
+    ],
+  },
   // {
   //   title: "业务管理",
   //   groupIcon: BookOpen,
@@ -107,15 +112,10 @@ const menuItems = [
     groupIcon: Settings,
     permission: "system.settings",
     items: [
-      // {
-      //   title: "系统设置",
-      //   url: "/dashboard/settings",
-      //   permission: "system.settings",
-      // },
       {
-        title: "权限管理",
-        url: "/dashboard/perms",
-        permission: "permissions.view",
+        title: "系统设置",
+        url: "/dashboard/settings",
+        permission: "system.settings",
       },
     ],
   },

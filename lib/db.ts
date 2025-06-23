@@ -15,6 +15,7 @@ export { refundService } from './services/refund.service'
 export { userService } from './services/user.service'
 export { dashboardService } from './services/dashboard.service'
 export { permissionService } from './services/permission.service'
+export { organizationService } from './services/organization.service'
 
 // 也可以作为默认导出
 import { orderService } from './services/order.service'
@@ -22,6 +23,7 @@ import { refundService } from './services/refund.service'
 import { userService } from './services/user.service'
 import { dashboardService } from './services/dashboard.service'
 import { permissionService } from './services/permission.service'
+import { organizationService } from './services/organization.service'
 
 const db = {
   order: orderService,
@@ -29,6 +31,7 @@ const db = {
   user: userService,
   dashboard: dashboardService,
   permission: permissionService,
+  organization: organizationService,
 }
 
 export default db

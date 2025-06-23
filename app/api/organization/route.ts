@@ -12,6 +12,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/auth'
+import { organizationService } from '@/lib/services/organization.service'
+import { PermissionService } from '@/lib/services/permission.service'
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,7 +26,49 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // 获取用户所属的组织信息
+    // 获取查询参数
+    const { searchParams } = new URL(request.url)
+    const listAll = searchParams.get('list') === 'true'
+
+    if (listAll) {
+      // 检查权限 - 获取所有组织列表需要特殊权限
+      const hasPermission = await PermissionService.checkPermission(
+        session.user.id,
+        'organization.view'
+      )
+      if (!hasPermission.hasPermission) {
+        return NextResponse.json(
+          { error: '权限不足' },
+          { status: 403 }
+        )
+      }
+
+      // 获取所有组织列表
+      const organizations = await organizationService.getOrganizations()
+      
+      const organizationList = organizations.map(org => ({
+        id: org.id,
+        name: org.name,
+        code: org.code,
+        description: org.description,
+        level: org.level,
+        memberCount: (org.users?.length || 0) + 
+                    (org.departments?.reduce((total, dept) => 
+                      total + (dept.users?.length || 0), 0) || 0),
+        departmentCount: org.departments?.length || 0,
+        active: org.active,
+        createdAt: org.createdAt,
+        updatedAt: org.updatedAt
+      }))
+
+      return NextResponse.json({
+        success: true,
+        data: organizationList,
+        total: organizationList.length
+      })
+    }
+
+    // 获取用户所属的组织信息（原有逻辑）
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       include: {
