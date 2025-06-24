@@ -3,9 +3,9 @@
 import React, { useState } from "react"
 import { Users, Building2 } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { DepartmentsTab } from "@/components/dashboard/contacts/departmentanduser/departments-tab"
-import { ArchivedTab } from "@/components/dashboard/contacts/departmentanduser/archived-tab"
-import { MembersTab } from "@/components/dashboard/contacts/departmentanduser/members-tab"
+import { DepartmentsTab } from "@/components/dashboard/contacts/deptuser/departments-tab"
+import { ArchivedTab } from "@/components/dashboard/contacts/deptuser/archived-tab"
+import { MembersTab } from "@/components/dashboard/contacts/deptuser/members-tab"
 
 export default function DepartmentAndUserPage() {
   const [activeTab, setActiveTab] = useState("members")

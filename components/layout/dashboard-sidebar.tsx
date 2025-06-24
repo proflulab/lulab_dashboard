@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/sidebar"
 import {
   LayoutDashboard,
-  // Users, // 暂时不需要
+  Users,
   // BookOpen, // 暂时不需要
   // GraduationCap, // 暂时不需要
   Settings,
@@ -53,17 +53,17 @@ const menuItems = [
   },
   {
     title: "组织架构",
-    groupIcon: LayoutDashboard,
+    groupIcon: Users,
     permission: "dashboard.view",
     items: [
       {
         title: "成员与部门",
-        url: "/dashboard/contacts/departmentanduser",
+        url: "/dashboard/contacts/deptuser",
         permission: "dashboard.view",
       },
       {
         title: "角色管理",
-        url: "/dashboard/roles",
+        url: "/dashboard/contacts/roles",
         permission: "dashboard.view",
       },
       {
@@ -125,6 +125,50 @@ interface OrganizationInfo {
   id: string
   name: string
   code: string
+}
+
+// 单独的下拉菜单组件，避免 hooks 规则违反
+function CollapsedDropdownMenu({ group, pathname }: { group: any, pathname: string }) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <MenuGuard key={group.title} permission={group.permission || 'dashboard.view'}>
+      <SidebarMenuItem>
+        <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+          <DropdownMenuTrigger asChild>
+            <SidebarMenuButton
+              onMouseEnter={() => setIsOpen(true)}
+              onMouseLeave={() => setIsOpen(false)}
+            >
+              {group.groupIcon && <group.groupIcon className="h-4 w-4" />}
+              <span className="transition-all duration-300 ease-in-out group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:overflow-hidden whitespace-nowrap">{group.title}</span>
+            </SidebarMenuButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            side="right"
+            align="start"
+            className="w-48"
+            onMouseEnter={() => setIsOpen(true)}
+            onMouseLeave={() => setIsOpen(false)}
+          >
+            {group.items.map((item: any) => {
+              const isActive = pathname === item.url
+
+              return (
+                <MenuGuard key={item.title} permission={item.permission || 'dashboard.view'}>
+                  <DropdownMenuItem asChild>
+                    <Link href={item.url} className={`flex items-center ${isActive ? 'bg-accent' : ''}`}>
+                      <span>{item.title}</span>
+                    </Link>
+                  </DropdownMenuItem>
+                </MenuGuard>
+              )
+            })}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarMenuItem>
+    </MenuGuard>
+  )
 }
 
 export function DashboardSidebar() {
@@ -225,35 +269,7 @@ export function DashboardSidebar() {
                 // 有多个子项的显示为可折叠的二级菜单
                 // 在折叠状态下使用下拉菜单，展开状态下使用可折叠菜单
                 if (state === "collapsed") {
-                  return (
-                    <MenuGuard key={group.title} permission={group.permission || 'dashboard.view'}>
-                      <SidebarMenuItem>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <SidebarMenuButton tooltip={group.title}>
-                              {group.groupIcon && <group.groupIcon className="h-4 w-4" />}
-                              <span className="transition-all duration-300 ease-in-out group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:overflow-hidden whitespace-nowrap">{group.title}</span>
-                            </SidebarMenuButton>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent side="right" align="start" className="w-48">
-                            {group.items.map((item) => {
-                              const isActive = pathname === item.url
-
-                              return (
-                                <MenuGuard key={item.title} permission={item.permission || 'dashboard.view'}>
-                                  <DropdownMenuItem asChild>
-                                    <Link href={item.url} className={`flex items-center ${isActive ? 'bg-accent' : ''}`}>
-                                      <span>{item.title}</span>
-                                    </Link>
-                                  </DropdownMenuItem>
-                                </MenuGuard>
-                              )
-                            })}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </SidebarMenuItem>
-                    </MenuGuard>
-                  )
+                  return <CollapsedDropdownMenu key={group.title} group={group} pathname={pathname} />
                 }
 
                 return (

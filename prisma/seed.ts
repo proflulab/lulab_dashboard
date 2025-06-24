@@ -12,7 +12,8 @@ import { PrismaClient } from '@prisma/client'
 import { createUsers } from './seeds/users'
 import { createPermissions } from './seeds/permissions'
 import { createOrganization } from './seeds/organization'
-import { createDepartments } from './seeds/departments'
+import { createDepartments, createUserDepartmentRelations } from './seeds/departments'
+import { createAllRelations } from './seeds/relations'
 import { createChannels } from './seeds/channels'
 import { createProjects } from './seeds/projects'
 import { createCurriculums } from './seeds/curriculums'
@@ -202,6 +203,14 @@ async function seedDatabase() {
     const organization = await createOrganization(prisma)
     const departments = await createDepartments(prisma, organization.id)
     const organizationData = { organization, departments }
+
+    // 3.1 创建用户部门关联
+    console.log('\n🔗 步骤 3.1: 创建用户部门关联')
+    await createUserDepartmentRelations(prisma, departments, userData)
+
+    // 3.2 创建其他关联表数据
+    console.log('\n🔗 步骤 3.2: 创建关联表数据')
+    await createAllRelations(prisma, organization.id, userData)
 
     // 4. 创建渠道数据
     console.log('\n📺 步骤 4: 创建渠道数据')

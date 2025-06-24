@@ -2,7 +2,7 @@
  * @Author: 杨仕明 shiming.y@qq.com
  * @Date: 2025-06-23 02:34:33
  * @LastEditors: 杨仕明 shiming.y@qq.com
- * @LastEditTime: 2025-06-23 17:05:37
+ * @LastEditTime: 2025-06-23 17:40:45
  * @FilePath: /lulab_dashboard/components/dashboard/contacts/departmentanduser/organization-panel.tsx
  * @Description: 
  * 
@@ -18,8 +18,8 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { OrganizationNodeComponent } from './organization-node'
-import { AddChildDepartmentDialog } from './add-child-department-dialog'
-import { DepartmentDetailSidebar } from '@/components/members/department-detail-sidebar'
+import { AddChildDepartmentDialog } from './dialog/add-department'
+import { DepartmentDetailSidebar } from '@/components/dashboard/contacts/deptuser/sidebar/department-detail'
 import { useOrganizationStore } from '@/stores/organization-store'
 import { Plus } from 'lucide-react'
 
@@ -80,20 +80,11 @@ export function OrganizationPanel() {
                             )}
 
                             {/* 新建部门按钮 */}
-                            {/* <Button 
-                                onClick={() => openAddChildDepartment(orgData.id, orgData.name)}
-                                variant="outline" 
-                                size="sm"
-                            >
-                                + 新建部门
-                            </Button> */}
-
                             <Button onClick={() => openAddChildDepartment(orgData.id, orgData.name)}
                                 variant="outline" size="sm" className="w-full justify-center text-sm text-gray-600 hover:text-gray-900">
                                 <Plus className="h-4 w-4 mr-2" />
                                 新建部门
                             </Button>
-
                         </div>
                     </CardContent>
                 </Card>

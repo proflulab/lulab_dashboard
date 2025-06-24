@@ -2,7 +2,7 @@
  * @Author: 杨仕明 shiming.y@qq.com
  * @Date: 2025-06-19 21:41:26
  * @LastEditors: 杨仕明 shiming.y@qq.com
- * @LastEditTime: 2025-06-20 13:22:27
+ * @LastEditTime: 2025-06-24 13:14:58
  * @FilePath: /lulab_dashboard/prisma/seeds/organization.ts
  * @Description: 组织种子模块
  * 
@@ -12,7 +12,6 @@
 import { PrismaClient } from '@prisma/client'
 
 export async function createOrganization(prisma: PrismaClient) {
-  
 
     // 创建基础组织
     const organization = await prisma.organization.upsert({
@@ -24,8 +23,6 @@ export async function createOrganization(prisma: PrismaClient) {
             description: 'LuLab科技有限公司',
         },
     })
-
-  
 
     return organization
 }

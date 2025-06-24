@@ -2,12 +2,13 @@
  * @Author: 杨仕明 shiming.y@qq.com
  * @Date: 2025-06-22 04:23:59
  * @LastEditors: 杨仕明 shiming.y@qq.com
- * @LastEditTime: 2025-06-22 04:24:01
- * @FilePath: /lulab_dashboard/components/dashboard/permissions/role-management.tsx
+ * @LastEditTime: 2025-06-24 14:12:40
+ * @FilePath: /lulab_dashboard/components/dashboard/contacts/role/role-management.tsx
  * @Description: 
  * 
  * Copyright (c) 2025 by ${git_name_email}, All Rights Reserved. 
  */
+
 'use client'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'

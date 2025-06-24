@@ -495,6 +495,69 @@ export const organizationService = {
   },
 
   /**
+   * 根据ID获取部门详情
+   */
+  async getDepartmentById(departmentId: string) {
+    const department = await prisma.department.findUnique({
+      where: {
+        id: departmentId,
+        active: true
+      },
+      include: {
+        organization: true,
+        users: {
+          include: {
+            user: {
+              include: {
+                profile: true
+              }
+            }
+          }
+        },
+        parent: true,
+        children: {
+          where: {
+            active: true
+          },
+          include: {
+            users: {
+              include: {
+                user: {
+                  include: {
+                    profile: true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    })
+
+    if (!department) return null
+
+    // 转换为前端需要的格式
+    return {
+      id: department.id,
+      name: department.name,
+      description: department.description,
+      type: 'department', // 固定类型
+      code: department.code,
+      level: department.level,
+      parentId: department.parentId,
+      organizationId: department.organizationId,
+      memberCount: this.calculateDepartmentUserCount(department),
+      children: department.children.map(child => ({
+        id: child.id,
+        name: child.name,
+        type: 'department', // 固定类型
+        memberCount: this.calculateDepartmentUserCount(child),
+        children: []
+      }))
+    }
+  },
+
+  /**
    * 获取部门列表
    */
   async getDepartments(organizationId?: string) {
@@ -620,5 +683,137 @@ export const organizationService = {
       level: newDepartment.level,
       parentId: newDepartment.parentId
     }
+  },
+
+  /**
+   * 更新部门信息
+   */
+  async updateDepartment(departmentId: string, departmentData: {
+    name?: string
+    description?: string
+    parentId?: string
+    code?: string
+  }) {
+    // 检查部门是否存在
+    const existingDepartment = await prisma.department.findUnique({
+      where: { id: departmentId, active: true }
+    })
+
+    if (!existingDepartment) {
+      throw new Error('部门不存在')
+    }
+
+    // 如果更新了父部门，需要重新计算层级
+    let level = existingDepartment.level
+    let organizationId = existingDepartment.organizationId
+
+    if (departmentData.parentId !== undefined && departmentData.parentId !== existingDepartment.parentId) {
+      if (departmentData.parentId) {
+        const parentDepartment = await prisma.department.findUnique({
+          where: { id: departmentData.parentId },
+          select: { organizationId: true, level: true }
+        })
+
+        if (!parentDepartment) {
+          throw new Error('父部门不存在')
+        }
+
+        organizationId = parentDepartment.organizationId
+        level = parentDepartment.level + 1
+      } else {
+        // 如果设置为顶级部门，获取默认组织
+        const defaultOrg = await prisma.organization.findFirst({
+          where: { active: true },
+          orderBy: { sortOrder: 'asc' }
+        })
+
+        if (!defaultOrg) {
+          throw new Error('未找到默认组织')
+        }
+
+        organizationId = defaultOrg.id
+        level = 1
+      }
+    }
+
+    // 更新部门
+    const updatedDepartment = await prisma.department.update({
+      where: { id: departmentId },
+      data: {
+        ...(departmentData.name && { name: departmentData.name }),
+        ...(departmentData.description !== undefined && { description: departmentData.description }),
+        ...(departmentData.parentId !== undefined && { parentId: departmentData.parentId }),
+        ...(departmentData.code && { code: departmentData.code }),
+        organizationId,
+        level
+      },
+      include: {
+        organization: true,
+        parent: true,
+        users: {
+          include: {
+            user: {
+              include: {
+                profile: true
+              }
+            }
+          }
+        },
+        children: {
+          where: { active: true }
+        }
+      }
+    })
+
+    // 转换为前端需要的格式
+     return {
+       id: updatedDepartment.id,
+       name: updatedDepartment.name,
+       description: updatedDepartment.description,
+       type: 'department', // 固定类型
+       code: updatedDepartment.code,
+       level: updatedDepartment.level,
+       parentId: updatedDepartment.parentId,
+       organizationId: updatedDepartment.organizationId,
+       memberCount: this.calculateDepartmentUserCount(updatedDepartment)
+    }
+  },
+
+  /**
+   * 删除部门
+   */
+  async deleteDepartment(departmentId: string) {
+    // 检查部门是否存在
+    const department = await prisma.department.findUnique({
+      where: { id: departmentId, active: true },
+      include: {
+        children: {
+          where: { active: true }
+        },
+        users: true
+      }
+    })
+
+    if (!department) {
+      throw new Error('部门不存在')
+    }
+
+    // 检查是否有子部门
+    if (department.children && department.children.length > 0) {
+      throw new Error('该部门下还有子部门，无法删除')
+    }
+
+    // 检查是否有用户
+    if (department.users && department.users.length > 0) {
+      throw new Error('该部门下还有用户，无法删除')
+    }
+
+    // 软删除部门
+    await prisma.department.update({
+      where: { id: departmentId },
+      data: { active: false }
+    })
+
+    return { success: true, message: '部门删除成功' }
   }
 }

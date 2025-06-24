@@ -110,9 +110,6 @@ export function OrganizationNodeComponent({
                             <DropdownMenuItem onClick={() => onMoreClick?.(node.id, 'addChild')}>
                                 添加子部门
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onMoreClick?.(node.id, 'moveUp')}>
-                                上移
-                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                                 onClick={() => onMoreClick?.(node.id, 'delete')}
