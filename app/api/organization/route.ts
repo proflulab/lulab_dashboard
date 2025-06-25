@@ -45,16 +45,16 @@ export async function GET(request: NextRequest) {
 
       // 获取所有组织列表
       const organizations = await organizationService.getOrganizations()
-      
+
       const organizationList = organizations.map(org => ({
         id: org.id,
         name: org.name,
         code: org.code,
         description: org.description,
         level: org.level,
-        memberCount: (org.users?.length || 0) + 
-                    (org.departments?.reduce((total, dept) => 
-                      total + (dept.users?.length || 0), 0) || 0),
+        memberCount: (org.users?.length || 0) +
+          (org.departments?.reduce((total, dept) =>
+            total + (dept.users?.length || 0), 0) || 0),
         departmentCount: org.departments?.length || 0,
         active: org.active,
         createdAt: org.createdAt,

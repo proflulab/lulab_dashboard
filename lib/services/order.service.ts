@@ -20,7 +20,7 @@ export const orderService = {
     })
   },
 
-  async getById(id: number) {
+  async getById(id: string) {
     return await prisma.order.findUnique({
       where: { id },
       include: {
@@ -66,7 +66,7 @@ export const orderService = {
     })
   },
 
-  async update(id: number, data: Partial<{
+  async update(id: string, data: Partial<{
     orderCode: string
     externalOrderId: string
     productName: string
@@ -98,13 +98,13 @@ export const orderService = {
     })
   },
 
-  async delete(id: number) {
+  async delete(id: string) {
     return await prisma.order.delete({
       where: { id },
     })
   },
 
-  async closeFinancially(id: number, closerId: string) {
+  async closeFinancially(id: string, closerId: string) {
     return await prisma.order.update({
       where: { id },
       data: {

@@ -2,12 +2,13 @@
  * @Author: 杨仕明 shiming.y@qq.com
  * @Date: 2025-06-23 02:34:33
  * @LastEditors: 杨仕明 shiming.y@qq.com
- * @LastEditTime: 2025-06-23 17:40:45
- * @FilePath: /lulab_dashboard/components/dashboard/contacts/departmentanduser/organization-panel.tsx
+ * @LastEditTime: 2025-06-24 15:44:12
+ * @FilePath: /lulab_dashboard/components/dashboard/contacts/deptuser/department-part/department-panel.tsx
  * @Description: 
  * 
  * Copyright (c) 2025 by ${git_name_email}, All Rights Reserved. 
  */
+
 import React from 'react'
 import { Search } from 'lucide-react'
 import {
@@ -17,13 +18,13 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { OrganizationNodeComponent } from './organization-node'
-import { AddChildDepartmentDialog } from './dialog/add-department'
+import { DepartmentNodeComponent } from './department-node'
+import { AddChildDepartmentDialog } from '../dialog/add-department'
 import { DepartmentDetailSidebar } from '@/components/dashboard/contacts/deptuser/sidebar/department-detail'
 import { useOrganizationStore } from '@/stores/organization-store'
 import { Plus } from 'lucide-react'
 
-export function OrganizationPanel() {
+export function DepartmentPanel() {
     // 直接从store获取所有状态和方法
     const {
         orgData,
@@ -50,12 +51,13 @@ export function OrganizationPanel() {
         <>
             <div className="w-80 flex-shrink-0 transition-all duration-300">
                 <Card className="h-fit">
+                    {/*TODO: '待开发 - 部门/用户搜索,可以搜索员工或者部门，当点击员工可以显示侧边栏，当点击部门可以跳转到该部门用户列表'*/}
                     <CardHeader>
                         <div className="flex items-center justify-between mb-1">
                             <div className="relative flex-1 mr-2">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                                 <Input
-                                    placeholder="请输入姓名、部箱..."
+                                    placeholder="请输入姓名、部门..."
                                     className="pl-10 text-sm"
                                 />
                             </div>
@@ -69,7 +71,7 @@ export function OrganizationPanel() {
                                     <div className="text-sm text-muted-foreground">加载中...</div>
                                 </div>
                             ) : (
-                                <OrganizationNodeComponent
+                                <DepartmentNodeComponent
                                     key={orgData.id}
                                     node={orgData}
                                     onToggle={toggleNode}

@@ -1,13 +1,21 @@
-/**
- * 组织架构相关的API服务
+/*
+ * @Author: 杨仕明 shiming.y@qq.com
+ * @Date: 2025-06-23 00:21:43
+ * @LastEditors: 杨仕明 shiming.y@qq.com
+ * @LastEditTime: 2025-06-25 06:30:31
+ * @FilePath: /lulab_dashboard/services/organization.service.ts
+ * @Description: 组织架构相关的API服务
+ * 
+ * Copyright (c) 2025 by ${git_name_email}, All Rights Reserved. 
  */
-import { OrganizationNode } from '@/types/member'
+
+import { DepartmentNode } from '@/types/member'
 
 export class OrganizationService {
   /**
    * 获取组织架构树
    */
-  static async fetchOrganizationTree(): Promise<OrganizationNode[]> {
+  static async fetchOrganizationTree(): Promise<DepartmentNode[]> {
     try {
       const response = await fetch('/api/organization/tree')
       if (!response.ok) {
@@ -32,7 +40,7 @@ export class OrganizationService {
     code?: string
     responsiblePerson?: string
     contactInfo?: string
-  }): Promise<OrganizationNode> {
+  }): Promise<DepartmentNode> {
     try {
       const response = await fetch('/api/departments', {
         method: 'POST',
@@ -48,94 +56,6 @@ export class OrganizationService {
       return data.data
     } catch (error) {
       console.error('Error creating department:', error)
-      throw error
-    }
-  }
-
-  /**
-   * 更新部门信息
-   */
-  static async updateDepartment(
-    departmentId: string,
-    departmentData: Partial<{
-      name: string
-      description: string
-      parentId: string
-    }>
-  ): Promise<OrganizationNode> {
-    try {
-      const response = await fetch(`/api/departments/${departmentId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(departmentData),
-      })
-      if (!response.ok) {
-        throw new Error('Failed to update department')
-      }
-      const data = await response.json()
-      return data.data
-    } catch (error) {
-      console.error('Error updating department:', error)
-      throw error
-    }
-  }
-
-  /**
-   * 删除部门
-   */
-  static async deleteDepartment(departmentId: string): Promise<void> {
-    try {
-      const response = await fetch(`/api/departments/${departmentId}`, {
-        method: 'DELETE',
-      })
-      if (!response.ok) {
-        throw new Error('Failed to delete department')
-      }
-    } catch (error) {
-      console.error('Error deleting department:', error)
-      throw error
-    }
-  }
-
-  /**
-   * 移动部门到新的父级
-   */
-  static async moveDepartment(
-    departmentId: string,
-    newParentId: string
-  ): Promise<void> {
-    try {
-      const response = await fetch(`/api/departments/${departmentId}/move`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ parentId: newParentId }),
-      })
-      if (!response.ok) {
-        throw new Error('Failed to move department')
-      }
-    } catch (error) {
-      console.error('Error moving department:', error)
-      throw error
-    }
-  }
-
-  /**
-   * 获取部门详情
-   */
-  static async getDepartmentDetail(departmentId: string): Promise<OrganizationNode> {
-    try {
-      const response = await fetch(`/api/departments/${departmentId}`)
-      if (!response.ok) {
-        throw new Error('Failed to fetch department detail')
-      }
-      const data = await response.json()
-      return data.data
-    } catch (error) {
-      console.error('Error fetching department detail:', error)
       throw error
     }
   }

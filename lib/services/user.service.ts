@@ -3,6 +3,7 @@ import { Gender } from '@prisma/client'
 
 // 用户相关操作
 export const userService = {
+  // 获取所有用户
   async getAll() {
     return await prisma.user.findMany({
       where: {
@@ -83,6 +84,25 @@ export const userService = {
       where: {
         email,
         deletedAt: null, // 只获取未删除的用户
+      },
+      include: {
+        profile: true, // 包含用户详细信息
+        roles: {
+          include: {
+            role: true,
+          },
+        },
+      },
+    })
+  },
+
+  // 根据手机号查找用户
+  async getByPhone(countryCode: string, phone: string) {
+    return await prisma.user.findFirst({
+      where: {
+        countryCode,
+        phone,
+        deletedAt: null,
       },
       include: {
         profile: true, // 包含用户详细信息
@@ -258,22 +278,5 @@ export const userService = {
     })
   },
 
-  // 根据手机号查找用户
-  async getByPhone(countryCode: string, phone: string) {
-    return await prisma.user.findFirst({
-      where: {
-        countryCode,
-        phone,
-        deletedAt: null,
-      },
-      include: {
-        profile: true, // 包含用户详细信息
-        roles: {
-          include: {
-            role: true,
-          },
-        },
-      },
-    })
-  },
+
 }

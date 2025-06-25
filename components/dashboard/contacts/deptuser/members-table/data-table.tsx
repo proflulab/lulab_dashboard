@@ -133,19 +133,21 @@ export function DataTable<TData, TValue>({
                     </DropdownMenu>
                 </div>
                 <div className="flex items-center space-x-2">
-                    <Button
+                    {/* TODO: 待开发 - 批量操作；删除转移部门等等等*/}
+                    {/* <Button
                         variant="outline"
                         size="sm"
                         disabled={table.getFilteredSelectedRowModel().rows.length === 0}
                     >
                         批量操作 {table.getFilteredSelectedRowModel().rows.length > 0 && `(${table.getFilteredSelectedRowModel().rows.length})`}
-                    </Button>
-                    <Button variant="outline" size="sm">
+                    </Button> */}
+                    {/* TODO: 待开发 - 批量导入/导出*/}
+                    {/* <Button variant="outline" size="sm">
                         导入/导出
-                    </Button>
-                    <Button 
-                        variant="outline" 
-                        size="sm" 
+                    </Button> */}
+                    <Button
+                        variant="outline"
+                        size="sm"
                         className="ml-2 text-blue-600 border-blue-600 hover:bg-blue-50"
                         onClick={() => setIsAddUserDialogOpen(true)}
                     >

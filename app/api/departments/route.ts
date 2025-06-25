@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { organizationService } from '@/lib/services/organization.service'
 import { PermissionService } from '@/lib/services/permission.service'
+import { departmentService } from '@/lib/services/department.service'
 
 /**
  * GET /api/departments
@@ -42,7 +43,7 @@ export async function GET(request: NextRequest) {
 
     if (includeTree) {
       // 返回树形结构
-      const departmentTree = await organizationService.getDepartmentTree(organizationId || undefined)
+      const departmentTree = await departmentService.getDepartmentTree(organizationId || undefined)
       return NextResponse.json({
         success: true,
         data: departmentTree,
@@ -50,7 +51,7 @@ export async function GET(request: NextRequest) {
       })
     } else {
       // 返回平铺列表
-      const departments = await organizationService.getDepartments(organizationId || undefined)
+      const departments = await departmentService.getDepartments(organizationId || undefined)
 
       // 转换为简化格式
       const departmentList = departments.map(dept => ({
@@ -126,7 +127,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 创建部门
-    const newDepartment = await organizationService.createDepartment({
+    const newDepartment = await departmentService.createDepartment({
       name: name.trim(),
       description: description?.trim(),
       parentId: parentId || null,

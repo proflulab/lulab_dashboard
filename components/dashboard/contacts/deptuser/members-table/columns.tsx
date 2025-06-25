@@ -112,7 +112,7 @@ export const memberColumns: ColumnDef<Member>[] = [
             const member = row.original
             return (
                 <div>
-                    {member.email === "syang@lulab.cn" ? (
+                    {member.email ? (
                         <span className="text-sm">{member.email}</span>
                     ) : (
                         <Badge variant="destructive" className="text-xs">

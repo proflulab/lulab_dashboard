@@ -2,7 +2,7 @@
  * @Author: 杨仕明 shiming.y@qq.com
  * @Date: 2025-06-23 00:04:35
  * @LastEditors: 杨仕明 shiming.y@qq.com
- * @LastEditTime: 2025-06-23 00:05:10
+ * @LastEditTime: 2025-06-24 17:02:02
  * @FilePath: /lulab_dashboard/types/member.ts
  * @Description: 
  * 
@@ -24,11 +24,15 @@ export interface Member {
   avatar: string
 }
 
-export interface OrganizationNode {
+export interface DepartmentNode {
   id: string
   name: string
   memberCount: number
   type: 'company' | 'department' | 'team'
-  children?: OrganizationNode[]
+  children?: DepartmentNode[]
   isExpanded?: boolean
+  code?: string
+  description?: string
+  level?: number
+  parentId?: string
 }

@@ -14,10 +14,29 @@ export interface OrganizationNode {
   parentId?: string
 }
 
-// 组织架构服务
+/**
+ * 组织架构服务
+ * 
+ * 提供以下功能：
+ * - getOrganizationTree() - 获取完整的组织架构树
+ * - getOrganizationById() - 根据组织ID获取组织架构
+ * - buildOrganizationNode() - 构建组织节点
+ * - calculateDepartmentUserCount() - 计算部门用户数量
+ * - getOrganizationMembers() - 获取组织成员列表
+ * - getOrganizations() - 获取组织列表
+ * - createOrganization() - 创建组织
+ * - updateOrganization() - 更新组织信息
+ * - deleteOrganization() - 软删除组织
+ */
 export const organizationService = {
   /**
    * 获取完整的组织架构树
+   * 
+   * @description 获取所有激活状态的组织，并构建完整的组织架构树结构
+   * @returns {Promise<OrganizationNode[]>} 组织架构树数组
+   * @example
+   * const orgTree = await organizationService.getOrganizationTree()
+   * console.log(orgTree) // [{ id: '1', name: '总公司', type: 'company', ... }]
    */
   async getOrganizationTree(): Promise<OrganizationNode[]> {
     // 获取所有组织
@@ -45,6 +64,30 @@ export const organizationService = {
                   include: {
                     user: true
                   }
+                },
+                children: {
+                  where: {
+                    active: true
+                  },
+                  include: {
+                    users: {
+                      include: {
+                        user: true
+                      }
+                    },
+                    children: {
+                      where: {
+                        active: true
+                      },
+                      include: {
+                        users: {
+                          include: {
+                            user: true
+                          }
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -67,6 +110,15 @@ export const organizationService = {
 
   /**
    * 根据组织ID获取组织架构
+   * 
+   * @description 根据指定的组织ID获取单个组织的详细信息和架构
+   * @param {string} organizationId - 组织ID
+   * @returns {Promise<OrganizationNode | null>} 组织节点对象，如果不存在则返回null
+   * @example
+   * const org = await organizationService.getOrganizationById('org-123')
+   * if (org) {
+   *   console.log(org.name) // '技术部'
+   * }
    */
   async getOrganizationById(organizationId: string): Promise<OrganizationNode | null> {
     const organization = await prisma.organization.findUnique({
@@ -113,62 +165,14 @@ export const organizationService = {
   },
 
   /**
-   * 获取部门架构树
-   */
-  async getDepartmentTree(organizationId?: string): Promise<OrganizationNode[]> {
-    const whereClause = organizationId ? {
-      organizationId,
-      active: true,
-      parentId: null // 只获取顶级部门
-    } : {
-      active: true,
-      parentId: null
-    }
-
-    const departments = await prisma.department.findMany({
-      where: whereClause,
-      include: {
-        organization: true,
-        users: {
-          include: {
-            user: true
-          }
-        },
-        children: {
-          where: {
-            active: true
-          },
-          include: {
-            users: {
-              include: {
-                user: true
-              }
-            },
-            children: {
-              where: {
-                active: true
-              },
-              include: {
-                users: {
-                  include: {
-                    user: true
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      orderBy: {
-        sortOrder: 'asc'
-      }
-    })
-
-    return departments.map(dept => this.buildDepartmentNode(dept))
-  },
-
-  /**
    * 构建组织节点
+   * 
+   * @description 将数据库查询结果转换为前端需要的组织节点格式
+   * @param {any} organization - 数据库查询的组织对象（包含用户和部门信息）
+   * @returns {OrganizationNode} 格式化的组织节点对象
+   * @example
+   * const orgNode = organizationService.buildOrganizationNode(dbOrganization)
+   * console.log(orgNode.memberCount) // 25
    */
   buildOrganizationNode(organization: any): OrganizationNode {
     // 计算组织下的总人数（包括直接用户和部门用户）
@@ -199,6 +203,10 @@ export const organizationService = {
 
   /**
    * 构建部门节点
+   * 
+   * @description 将数据库查询的部门对象转换为前端需要的部门节点格式
+   * @param {any} department - 数据库查询的部门对象（包含用户和子部门信息）
+   * @returns {OrganizationNode} 格式化的部门节点对象
    */
   buildDepartmentNode(department: any): OrganizationNode {
     const memberCount = this.calculateDepartmentUserCount(department)
@@ -226,6 +234,13 @@ export const organizationService = {
 
   /**
    * 计算部门用户数量（包括子部门）
+   * 
+   * @description 递归计算部门及其所有子部门的用户总数，仅用于组织节点构建
+   * @param {any} department - 部门对象（包含用户和子部门信息）
+   * @returns {number} 部门及子部门的用户总数
+   * @example
+   * const userCount = organizationService.calculateDepartmentUserCount(department)
+   * console.log(userCount) // 15
    */
   calculateDepartmentUserCount(department: any): number {
     const directUsers = department.users?.length || 0
@@ -237,111 +252,24 @@ export const organizationService = {
   },
 
   /**
-   * 计算部门用户数量（包括子部门）- 异步版本
-   */
-  async calculateDepartmentUserCountAsync(departmentId: string): Promise<number> {
-    // 获取所有子部门ID
-    const getAllSubDepartmentIds = async (parentId: string): Promise<string[]> => {
-      const subDepartments = await prisma.department.findMany({
-        where: {
-          parentId,
-          active: true
-        },
-        select: { id: true }
-      })
-
-      let allIds = subDepartments.map(dept => dept.id)
-
-      for (const subDept of subDepartments) {
-        const subSubIds = await getAllSubDepartmentIds(subDept.id)
-        allIds = allIds.concat(subSubIds)
-      }
-
-      return allIds
-    }
-
-    const allDepartmentIds = [departmentId, ...(await getAllSubDepartmentIds(departmentId))]
-
-    // 计算所有相关部门的用户数量
-    const userCount = await prisma.userDepartment.count({
-      where: {
-        departmentId: {
-          in: allDepartmentIds
-        }
-      }
-    })
-
-    return userCount
-  },
-
-  /**
-   * 获取部门成员列表
-   */
-  async getDepartmentMembers(departmentId: string, includeSubDepartments: boolean = false) {
-    let departmentIds = [departmentId]
-
-    if (includeSubDepartments) {
-      // 递归获取所有子部门ID
-      const getAllSubDepartmentIds = async (parentId: string): Promise<string[]> => {
-        const subDepartments = await prisma.department.findMany({
-          where: {
-            parentId,
-            active: true
-          },
-          select: { id: true }
-        })
-
-        let allIds = subDepartments.map(dept => dept.id)
-
-        for (const subDept of subDepartments) {
-          const subSubIds = await getAllSubDepartmentIds(subDept.id)
-          allIds = allIds.concat(subSubIds)
-        }
-
-        return allIds
-      }
-
-      const subDepartmentIds = await getAllSubDepartmentIds(departmentId)
-      departmentIds = departmentIds.concat(subDepartmentIds)
-    }
-
-    // 获取部门成员
-    const departmentUsers = await prisma.userDepartment.findMany({
-      where: {
-        departmentId: {
-          in: departmentIds
-        }
-      },
-      include: {
-        user: {
-          include: {
-            profile: true,
-            roles: {
-              include: {
-                role: true
-              }
-            }
-          }
-        },
-        department: true
-      }
-    })
-
-    return departmentUsers.map(userDept => ({
-      id: userDept.user.id,
-      name: userDept.user.profile?.name || userDept.user.email,
-      email: userDept.user.email,
-      phone: userDept.user.phone || '',
-      avatar: userDept.user.profile?.avatar || '',
-      department: userDept.department.name,
-      departmentId: userDept.department.id,
-      roles: userDept.user.roles?.map(userRole => userRole.role.name) || [],
-      status: userDept.user.active ? 'active' : 'inactive'
-    }))
-  },
-
-  /**
    * 获取组织成员列表
+   * 
+   * @description 获取指定组织下的所有成员，支持分页、搜索和部门筛选
+   * @param {string} organizationId - 组织ID
+   * @param {Object} options - 查询选项
+   * @param {string} [options.departmentId] - 部门ID，用于筛选特定部门的成员
+   * @param {number} [options.page=1] - 页码
+   * @param {number} [options.limit=50] - 每页数量
+   * @param {string} [options.search] - 搜索关键词（姓名、邮箱、手机号）
+   * @returns {Promise<{users: Array, pagination: Object}>} 成员列表和分页信息
+   * @example
+   * const result = await organizationService.getOrganizationMembers('org-123', {
+   *   page: 1,
+   *   limit: 20,
+   *   search: '张三'
+   * })
+   * console.log(result.users.length) // 成员数量
+   * console.log(result.pagination.total) // 总数
    */
   async getOrganizationMembers(organizationId: string, options: {
     departmentId?: string
@@ -463,6 +391,14 @@ export const organizationService = {
 
   /**
    * 获取组织列表
+   * 
+   * @description 获取所有激活状态的组织列表，包含用户和部门信息
+   * @returns {Promise<Array>} 组织列表数组
+   * @example
+   * const organizations = await organizationService.getOrganizations()
+   * organizations.forEach(org => {
+   *   console.log(`${org.name}: ${org.users.length}人`)
+   * })
    */
   async getOrganizations() {
     return await prisma.organization.findMany({
@@ -495,174 +431,73 @@ export const organizationService = {
   },
 
   /**
-   * 根据ID获取部门详情
+   * 创建组织
+   * 
+   * @description 创建新的组织，自动生成编码和计算层级
+   * @param {Object} organizationData - 组织数据
+   * @param {string} organizationData.name - 组织名称（必填）
+   * @param {string} [organizationData.code] - 组织编码，不提供则自动生成
+   * @param {string} [organizationData.description] - 组织描述
+   * @param {string|null} [organizationData.parentId] - 父组织ID，null表示顶级组织
+   * @returns {Promise<OrganizationNode>} 创建的组织节点对象
+   * @throws {Error} 当组织编码已存在或父组织不存在时抛出错误
+   * @example
+   * const newOrg = await organizationService.createOrganization({
+   *   name: '研发中心',
+   *   description: '负责产品研发',
+   *   parentId: 'parent-org-id'
+   * })
+   * console.log(newOrg.id) // 新组织ID
    */
-  async getDepartmentById(departmentId: string) {
-    const department = await prisma.department.findUnique({
-      where: {
-        id: departmentId,
-        active: true
-      },
-      include: {
-        organization: true,
-        users: {
-          include: {
-            user: {
-              include: {
-                profile: true
-              }
-            }
-          }
-        },
-        parent: true,
-        children: {
-          where: {
-            active: true
-          },
-          include: {
-            users: {
-              include: {
-                user: {
-                  include: {
-                    profile: true
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    })
-
-    if (!department) return null
-
-    // 转换为前端需要的格式
-    return {
-      id: department.id,
-      name: department.name,
-      description: department.description,
-      type: 'department', // 固定类型
-      code: department.code,
-      level: department.level,
-      parentId: department.parentId,
-      organizationId: department.organizationId,
-      memberCount: this.calculateDepartmentUserCount(department),
-      children: department.children.map(child => ({
-        id: child.id,
-        name: child.name,
-        type: 'department', // 固定类型
-        memberCount: this.calculateDepartmentUserCount(child),
-        children: []
-      }))
-    }
-  },
-
-  /**
-   * 获取部门列表
-   */
-  async getDepartments(organizationId?: string) {
-    const whereClause = organizationId ? {
-      organizationId,
-      active: true
-    } : {
-      active: true
-    }
-
-    return await prisma.department.findMany({
-      where: whereClause,
-      include: {
-        organization: true,
-        users: {
-          include: {
-            user: true
-          }
-        },
-        parent: true,
-        children: {
-          where: {
-            active: true
-          }
-        }
-      },
-      orderBy: {
-        sortOrder: 'asc'
-      }
-    })
-  },
-
-  /**
-   * 创建新部门
-   */
-  async createDepartment(departmentData: {
+  async createOrganization(organizationData: {
     name: string
+    code?: string
     description?: string
     parentId?: string | null
-    type?: string
-    code?: string
-    responsiblePerson?: string
-    contactInfo?: string
   }) {
-    // 获取默认组织ID（如果没有指定父部门）
-    let organizationId: string
-    let level = 1
-
-    if (departmentData.parentId) {
-      // 如果有父部门，获取父部门信息
-      const parentDepartment = await prisma.department.findUnique({
-        where: { id: departmentData.parentId },
-        select: { organizationId: true, level: true }
-      })
-
-      if (!parentDepartment) {
-        throw new Error('父部门不存在')
-      }
-
-      organizationId = parentDepartment.organizationId
-      level = parentDepartment.level + 1
-    } else {
-      // 如果没有父部门，获取第一个组织作为默认组织
-      const defaultOrg = await prisma.organization.findFirst({
-        where: { active: true },
-        select: { id: true }
-      })
-
-      if (!defaultOrg) {
-        throw new Error('没有可用的组织')
-      }
-
-      organizationId = defaultOrg.id
-    }
-
-    // 生成部门编码（如果没有提供）
-    let code = departmentData.code
+    // 生成组织编码（如果没有提供）
+    let code = organizationData.code
     if (!code) {
       const timestamp = Date.now().toString().slice(-6)
-      code = `DEPT_${timestamp}`
+      code = `ORG_${timestamp}`
     }
 
-    // 检查部门编码是否已存在
-    const existingDept = await prisma.department.findUnique({
+    // 检查组织编码是否已存在
+    const existingOrg = await prisma.organization.findUnique({
       where: { code }
     })
 
-    if (existingDept) {
-      throw new Error('部门编码已存在')
+    if (existingOrg) {
+      throw new Error('组织编码已存在')
     }
 
-    // 创建部门
-    const newDepartment = await prisma.department.create({
+    // 计算层级
+    let level = 1
+    if (organizationData.parentId) {
+      const parentOrg = await prisma.organization.findUnique({
+        where: { id: organizationData.parentId },
+        select: { level: true }
+      })
+
+      if (!parentOrg) {
+        throw new Error('父组织不存在')
+      }
+
+      level = parentOrg.level + 1
+    }
+
+    // 创建组织
+    const newOrganization = await prisma.organization.create({
       data: {
-        name: departmentData.name,
+        name: organizationData.name,
         code,
-        description: departmentData.description || '',
-        organizationId,
-        parentId: departmentData.parentId || null,
+        description: organizationData.description || '',
+        parentId: organizationData.parentId || null,
         level,
         sortOrder: 0,
         active: true
       },
       include: {
-        organization: true,
         parent: true,
         users: {
           include: {
@@ -672,83 +507,83 @@ export const organizationService = {
       }
     })
 
-    // 转换为OrganizationNode格式
     return {
-      id: newDepartment.id,
-      name: newDepartment.name,
-      memberCount: newDepartment.users?.length || 0,
-      type: 'department' as const,
-      code: newDepartment.code,
-      description: newDepartment.description,
-      level: newDepartment.level,
-      parentId: newDepartment.parentId
+      id: newOrganization.id,
+      name: newOrganization.name,
+      memberCount: newOrganization.users?.length || 0,
+      type: 'company' as const,
+      code: newOrganization.code,
+      description: newOrganization.description,
+      level: newOrganization.level,
+      parentId: newOrganization.parentId
     }
   },
 
   /**
-   * 更新部门信息
+   * 更新组织信息
+   * 
+   * @description 更新指定组织的信息，支持修改父组织（会自动重新计算层级）
+   * @param {string} organizationId - 要更新的组织ID
+   * @param {Object} organizationData - 更新的组织数据
+   * @param {string} [organizationData.name] - 组织名称
+   * @param {string} [organizationData.description] - 组织描述
+   * @param {string} [organizationData.parentId] - 父组织ID
+   * @param {string} [organizationData.code] - 组织编码
+   * @returns {Promise<OrganizationNode>} 更新后的组织节点对象
+   * @throws {Error} 当组织不存在或父组织不存在时抛出错误
+   * @example
+   * const updatedOrg = await organizationService.updateOrganization('org-123', {
+   *   name: '新名称',
+   *   description: '新描述'
+   * })
+   * console.log(updatedOrg.name) // '新名称'
    */
-  async updateDepartment(departmentId: string, departmentData: {
+  async updateOrganization(organizationId: string, organizationData: {
     name?: string
     description?: string
     parentId?: string
     code?: string
   }) {
-    // 检查部门是否存在
-    const existingDepartment = await prisma.department.findUnique({
-      where: { id: departmentId, active: true }
+    // 检查组织是否存在
+    const existingOrganization = await prisma.organization.findUnique({
+      where: { id: organizationId, active: true }
     })
 
-    if (!existingDepartment) {
-      throw new Error('部门不存在')
+    if (!existingOrganization) {
+      throw new Error('组织不存在')
     }
 
-    // 如果更新了父部门，需要重新计算层级
-    let level = existingDepartment.level
-    let organizationId = existingDepartment.organizationId
+    // 如果更新了父组织，需要重新计算层级
+    let level = existingOrganization.level
 
-    if (departmentData.parentId !== undefined && departmentData.parentId !== existingDepartment.parentId) {
-      if (departmentData.parentId) {
-        const parentDepartment = await prisma.department.findUnique({
-          where: { id: departmentData.parentId },
-          select: { organizationId: true, level: true }
+    if (organizationData.parentId !== undefined && organizationData.parentId !== existingOrganization.parentId) {
+      if (organizationData.parentId) {
+        const parentOrganization = await prisma.organization.findUnique({
+          where: { id: organizationData.parentId },
+          select: { level: true }
         })
 
-        if (!parentDepartment) {
-          throw new Error('父部门不存在')
+        if (!parentOrganization) {
+          throw new Error('父组织不存在')
         }
 
-        organizationId = parentDepartment.organizationId
-        level = parentDepartment.level + 1
+        level = parentOrganization.level + 1
       } else {
-        // 如果设置为顶级部门，获取默认组织
-        const defaultOrg = await prisma.organization.findFirst({
-          where: { active: true },
-          orderBy: { sortOrder: 'asc' }
-        })
-
-        if (!defaultOrg) {
-          throw new Error('未找到默认组织')
-        }
-
-        organizationId = defaultOrg.id
         level = 1
       }
     }
 
-    // 更新部门
-    const updatedDepartment = await prisma.department.update({
-      where: { id: departmentId },
+    // 更新组织
+    const updatedOrganization = await prisma.organization.update({
+      where: { id: organizationId },
       data: {
-        ...(departmentData.name && { name: departmentData.name }),
-        ...(departmentData.description !== undefined && { description: departmentData.description }),
-        ...(departmentData.parentId !== undefined && { parentId: departmentData.parentId }),
-        ...(departmentData.code && { code: departmentData.code }),
-        organizationId,
+        ...(organizationData.name && { name: organizationData.name }),
+        ...(organizationData.description !== undefined && { description: organizationData.description }),
+        ...(organizationData.parentId !== undefined && { parentId: organizationData.parentId }),
+        ...(organizationData.code && { code: organizationData.code }),
         level
       },
       include: {
-        organization: true,
         parent: true,
         users: {
           include: {
@@ -758,62 +593,77 @@ export const organizationService = {
               }
             }
           }
-        },
-        children: {
-          where: { active: true }
         }
       }
     })
 
-    // 转换为前端需要的格式
-     return {
-       id: updatedDepartment.id,
-       name: updatedDepartment.name,
-       description: updatedDepartment.description,
-       type: 'department', // 固定类型
-       code: updatedDepartment.code,
-       level: updatedDepartment.level,
-       parentId: updatedDepartment.parentId,
-       organizationId: updatedDepartment.organizationId,
-       memberCount: this.calculateDepartmentUserCount(updatedDepartment)
+    return {
+      id: updatedOrganization.id,
+      name: updatedOrganization.name,
+      description: updatedOrganization.description,
+      type: 'company' as const,
+      code: updatedOrganization.code,
+      level: updatedOrganization.level,
+      parentId: updatedOrganization.parentId,
+      memberCount: updatedOrganization.users?.length || 0
     }
   },
 
   /**
-   * 删除部门
+   * 软删除组织
+   * 
+   * @description 软删除指定组织（设置active为false），删除前会检查是否有子组织、部门或用户
+   * @param {string} organizationId - 要删除的组织ID
+   * @returns {Promise<{success: boolean, message: string}>} 删除结果
+   * @throws {Error} 当组织不存在、有子组织、有部门或有用户时抛出错误
+   * @example
+   * try {
+   *   const result = await organizationService.deleteOrganization('org-123')
+   *   console.log(result.message) // '组织删除成功'
+   * } catch (error) {
+   *   console.error(error.message) // '该组织下还有部门，无法删除'
+   * }
    */
-  async deleteDepartment(departmentId: string) {
-    // 检查部门是否存在
-    const department = await prisma.department.findUnique({
-      where: { id: departmentId, active: true },
+  async deleteOrganization(organizationId: string) {
+    // 检查组织是否存在
+    const organization = await prisma.organization.findUnique({
+      where: { id: organizationId, active: true },
       include: {
         children: {
+          where: { active: true }
+        },
+        departments: {
           where: { active: true }
         },
         users: true
       }
     })
 
-    if (!department) {
-      throw new Error('部门不存在')
+    if (!organization) {
+      throw new Error('组织不存在')
     }
 
-    // 检查是否有子部门
-    if (department.children && department.children.length > 0) {
-      throw new Error('该部门下还有子部门，无法删除')
+    // 检查是否有子组织
+    if (organization.children && organization.children.length > 0) {
+      throw new Error('该组织下还有子组织，无法删除')
+    }
+
+    // 检查是否有部门
+    if (organization.departments && organization.departments.length > 0) {
+      throw new Error('该组织下还有部门，无法删除')
     }
 
     // 检查是否有用户
-    if (department.users && department.users.length > 0) {
-      throw new Error('该部门下还有用户，无法删除')
+    if (organization.users && organization.users.length > 0) {
+      throw new Error('该组织下还有用户，无法删除')
     }
 
-    // 软删除部门
-    await prisma.department.update({
-      where: { id: departmentId },
+    // 软删除组织
+    await prisma.organization.update({
+      where: { id: organizationId },
       data: { active: false }
     })
 
-    return { success: true, message: '部门删除成功' }
+    return { success: true, message: '组织删除成功' }
   }
 }

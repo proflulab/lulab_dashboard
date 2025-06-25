@@ -2,15 +2,12 @@
  * @Author: 杨仕明 shiming.y@qq.com
  * @Date: 2025-06-18 22:30:46
  * @LastEditors: 杨仕明 shiming.y@qq.com
- * @LastEditTime: 2025-06-18 23:12:52
+ * @LastEditTime: 2025-06-24 16:04:21
  * @FilePath: /lulab_dashboard/app/api/users/[userId]/restore/route.ts
- * @Description: 
- * 
- * Copyright (c) 2025 by ${git_name_email}, All Rights Reserved. 
- */
-/*
+ * @Description:
  * 用户恢复 API 路由
  * 用于恢复被软删除的用户
+ * Copyright (c) 2025 by ${git_name_email}, All Rights Reserved.
  */
 
 import { NextRequest, NextResponse } from 'next/server'

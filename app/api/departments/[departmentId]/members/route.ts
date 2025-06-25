@@ -5,8 +5,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { prisma } from '@/lib/prisma'
 import { PermissionService } from '@/lib/services/permission.service'
+import { departmentService } from '@/lib/services/department.service'
 
 /**
  * GET /api/departments/[departmentId]/members
@@ -44,64 +44,11 @@ export async function GET(
     const { searchParams } = new URL(request.url)
     const includeSubDepartments = searchParams.get('includeSubDepartments') === 'true'
 
-    // 构建查询条件
-    let departmentIds = [departmentId]
-
-    if (includeSubDepartments) {
-      // 递归获取所有子部门ID
-      const getAllSubDepartmentIds = async (parentId: string): Promise<string[]> => {
-        const subDepartments = await prisma.department.findMany({
-          where: {
-            parentId,
-            active: true
-          },
-          select: { id: true }
-        })
-
-        let allIds = subDepartments.map(dept => dept.id)
-
-        for (const subDept of subDepartments) {
-          const subSubIds = await getAllSubDepartmentIds(subDept.id)
-          allIds = allIds.concat(subSubIds)
-        }
-
-        return allIds
-      }
-
-      const subDepartmentIds = await getAllSubDepartmentIds(departmentId)
-      departmentIds = departmentIds.concat(subDepartmentIds)
-    }
-
-    // 获取部门成员
-    const departmentUsers = await prisma.userDepartment.findMany({
-      where: {
-        departmentId: {
-          in: departmentIds
-        }
-      },
-      include: {
-        user: {
-          include: {
-            profile: true,
-            roles: {
-              include: {
-                role: true
-              }
-            },
-            organizations: {
-              include: {
-                organization: true
-              }
-            }
-          }
-        },
-        department: {
-          include: {
-            organization: true
-          }
-        }
-      }
-    })
+    // 调用部门服务获取成员数据
+    const { departmentUsers, department, departmentIds } = await departmentService.getDepartmentMembers(
+      departmentId,
+      includeSubDepartments
+    )
 
     // 转换为前端需要的格式
     const members = departmentUsers.map(userDept => {
@@ -132,14 +79,7 @@ export async function GET(
       }
     })
 
-    // 获取部门信息
-    const department = await prisma.department.findUnique({
-      where: { id: departmentId },
-      include: {
-        organization: true,
-        parent: true
-      }
-    })
+
 
     return NextResponse.json({
       success: true,

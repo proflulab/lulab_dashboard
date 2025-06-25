@@ -20,7 +20,7 @@ export const refundService = {
     })
   },
 
-  async getById(id: number) {
+  async getById(id: string) {
     return await prisma.orderRefund.findUnique({
       where: { id },
       include: {
@@ -36,7 +36,7 @@ export const refundService = {
     })
   },
 
-  async getByOrderId(orderId: number) {
+  async getByOrderId(orderId: string) {
     return await prisma.orderRefund.findMany({
       where: { orderId },
       include: {
@@ -52,7 +52,7 @@ export const refundService = {
 
   async create(data: {
     afterSaleCode?: string
-    orderId?: number
+    orderId?: string
     submittedAt?: Date
     refundedAt?: Date
     refundChannel?: string
@@ -63,7 +63,7 @@ export const refundService = {
     benefitEndedAt?: Date
     benefitUsedDays?: number
     applicantName?: string
-    parentId?: number
+    parentId?: string
     productCategory?: string
   }) {
     return await prisma.orderRefund.create({
@@ -77,9 +77,9 @@ export const refundService = {
     })
   },
 
-  async update(id: number, data: Partial<{
+  async update(id: string, data: Partial<{
     afterSaleCode: string
-    orderId: number
+    orderId: string
     submittedAt: Date
     refundedAt: Date
     refundChannel: string
@@ -93,7 +93,7 @@ export const refundService = {
     isFinancialSettled: boolean
     financialSettledAt: Date
     financialNote: string
-    parentId: number
+    parentId: string
     productCategory: string
   }>) {
     return await prisma.orderRefund.update({
@@ -108,13 +108,13 @@ export const refundService = {
     })
   },
 
-  async delete(id: number) {
+  async delete(id: string) {
     return await prisma.orderRefund.delete({
       where: { id },
     })
   },
 
-  async settleFinancially(id: number, note?: string) {
+  async settleFinancially(id: string, note?: string) {
     return await prisma.orderRefund.update({
       where: { id },
       data: {

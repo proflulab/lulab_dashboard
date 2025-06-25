@@ -4,13 +4,12 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { OrganizationNode } from '@/types/member'
+import { DepartmentNode } from '@/types/member'
 
 interface OrganizationNodeComponentProps {
-    node: OrganizationNode
+    node: DepartmentNode
     level?: number
     onToggle: (nodeId: string) => void
     selectedNodeId?: string
@@ -18,7 +17,7 @@ interface OrganizationNodeComponentProps {
     onMoreClick?: (nodeId: string, action: string) => void | Promise<void>
 }
 
-export function OrganizationNodeComponent({
+export function DepartmentNodeComponent({
     node,
     level = 0,
     onToggle,
@@ -102,15 +101,13 @@ export function OrganizationNodeComponent({
                                 }}
                             />
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuSeparator />
+                        <DropdownMenuContent align="end" className="w-24">
                             <DropdownMenuItem onClick={() => onMoreClick?.(node.id, 'edit')}>
                                 编辑部门
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => onMoreClick?.(node.id, 'addChild')}>
                                 添加子部门
                             </DropdownMenuItem>
-                            <DropdownMenuSeparator />
                             <DropdownMenuItem
                                 onClick={() => onMoreClick?.(node.id, 'delete')}
                                 className="text-red-600 focus:text-red-600"
@@ -126,7 +123,7 @@ export function OrganizationNodeComponent({
             {node.isExpanded && node.children && (
                 <div className="space-y-1">
                     {node.children.map((child) => (
-                        <OrganizationNodeComponent
+                        <DepartmentNodeComponent
                             key={child.id}
                             node={child}
                             level={level + 1}

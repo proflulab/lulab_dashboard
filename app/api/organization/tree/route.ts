@@ -1,7 +1,14 @@
 /*
- * 组织架构树 API 路由
+ * @Author: 杨仕明 shiming.y@qq.com
+ * @Date: 2025-06-22 17:30:59
+ * @LastEditors: 杨仕明 shiming.y@qq.com
+ * @LastEditTime: 2025-06-25 06:36:06
+ * @FilePath: /lulab_dashboard/app/api/organization/tree/route.ts
+ * @Description: 组织架构树 API 路由
  * 用于获取完整的组织架构树形结构
+ * Copyright (c) 2025 by ${git_name_email}, All Rights Reserved. 
  */
+
 
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
@@ -44,7 +51,7 @@ export async function GET(request: NextRequest) {
 
     if (type === 'departments') {
       // 只获取部门架构
-      organizationTree = await organizationService.getDepartmentTree(organizationId || undefined)
+      organizationTree = await organizationService.getOrganizationTree()
     } else if (organizationId) {
       // 获取指定组织的架构
       const singleOrg = await organizationService.getOrganizationById(organizationId)

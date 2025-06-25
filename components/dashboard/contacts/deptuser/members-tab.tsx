@@ -10,7 +10,7 @@
  */
 import React, { useEffect } from 'react'
 import { MembersPage } from './members-table/page'
-import { OrganizationPanel } from './organization-panel'
+import { DepartmentPanel } from './department-part/department-panel'
 import { MemberDetailSidebar } from '@/components/dashboard/contacts/deptuser/sidebar/member-detail'
 import { useOrganizationStore } from '@/stores/organization-store'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -42,7 +42,7 @@ export function MembersTab() {
     <div className="space-y-1">
       <div className="flex gap-2">
         {/* 左侧组织架构 */}
-        <OrganizationPanel />
+        <DepartmentPanel />
 
         {/* 右侧成员列表 */}
         <div className="flex-1">
