@@ -133,17 +133,27 @@ export const useOrganizationStore = create<OrganizationStore>()(devtools(
       set({ orgData: updateNode(orgData) })
     },
 
-    // 获取部门成员数据
+    // 获取成员数据
     selectNode: async (nodeId: string) => {
       set({ selectedNodeId: nodeId })
 
-      // 重新加载该部门的成员数据
+      // 判断是否为根节点（公司节点）
+      const { orgData } = get()
+      const isRootNode = nodeId === orgData.id
+
       try {
-        const departmentMembers = await MemberService.fetchDepartmentMembers(nodeId)
-        set({ members: departmentMembers })
+        if (isRootNode) {
+          // 如果是根节点，获取所有组织成员
+          const allMembers = await MemberService.fetchOrganizationMembers()
+          set({ members: allMembers })
+        } else {
+          // 如果是部门节点，获取该部门的成员数据
+          const departmentMembers = await MemberService.fetchDepartmentMembers(nodeId)
+          set({ members: departmentMembers })
+        }
       } catch (error) {
-        console.error('Error loading department members:', error)
-        // 如果获取部门成员失败，则获取所有成员
+        console.error('Error loading members:', error)
+        // 如果获取失败，则获取所有成员作为备选
         try {
           const allMembers = await MemberService.fetchOrganizationMembers()
           set({ members: allMembers })
