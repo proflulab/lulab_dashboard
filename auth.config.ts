@@ -2,7 +2,7 @@
  * @Author: 杨仕明 shiming.y@qq.com
  * @Date: 2025-06-15 20:02:18
  * @LastEditors: 杨仕明 shiming.y@qq.com
- * @LastEditTime: 2025-06-19 13:35:32
+ * @LastEditTime: 2025-06-27 03:07:07
  * @FilePath: /lulab_dashboard/auth.config.ts
  * @Description: 
  * 
@@ -83,6 +83,32 @@ const authConfig = {
     }),
   ],
   callbacks: {
+    authorized({ auth, request: { nextUrl } }) {
+      const isLoggedIn = !!auth?.user
+      const { pathname } = nextUrl
+      // 定义公开路径
+      const publicPaths = [
+        '/auth/signin',
+        '/auth/signup',
+        '/auth/error',
+        '/'
+      ]
+
+      // 检查是否为公开路径
+      const isPublicPath = publicPaths.includes(pathname)
+
+      // 如果是公开路径
+      if (isPublicPath) {
+        // 如果已登录用户访问登录页面，重定向到仪表盘
+        if (isLoggedIn && pathname === '/auth/signin') {
+          return Response.redirect(new URL('/dashboard', nextUrl))
+        }
+        return true
+      }
+
+      // 非公开路径需要登录
+      return isLoggedIn
+    },
     async jwt({ token, user }) {
       if (user && 'role' in user) {
         token.role = user.role
