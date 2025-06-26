@@ -68,7 +68,7 @@ export async function middleware(request: NextRequest) {
   if (isPublicPath(pathname)) {
     // 如果已登录用户访问登录页面，重定向到首页
     if (token && pathname === '/auth/signin') {
-      return NextResponse.redirect(new URL('/', request.url))
+      return NextResponse.redirect(new URL('/dashboard', request.url))
     }
     return NextResponse.next()
   }
