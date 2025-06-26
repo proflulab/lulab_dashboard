@@ -2,7 +2,7 @@
  * @Author: 杨仕明 shiming.y@qq.com
  * @Date: 2025-06-15 20:02:32
  * @LastEditors: 杨仕明 shiming.y@qq.com
- * @LastEditTime: 2025-06-27 02:43:18
+ * @LastEditTime: 2025-06-27 02:47:43
  * @FilePath: /lulab_dashboard/middleware.ts
  * @Description:
  * Next.js 中间件
@@ -64,21 +64,21 @@ export async function middleware(request: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET
   })
 
-  // // 公开页面，无需认证
-  // if (isPublicPath(pathname)) {
-  //   // 如果已登录用户访问登录页面，重定向到首页
-  //   if (token && pathname === '/auth/signin') {
-  //     return NextResponse.redirect(new URL('/dashboard', request.url))
-  //   }
-  //   return NextResponse.next()
-  // }
+  // 公开页面，无需认证
+  if (isPublicPath(pathname)) {
+    // 如果已登录用户访问登录页面，重定向到首页
+    if (token && pathname === '/auth/signin') {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+    return NextResponse.next()
+  }
 
   // 检查用户是否已认证
-  // if (!token) {
-  //   const signInUrl = new URL('/auth/signin', request.url)
-  //   signInUrl.searchParams.set('callbackUrl', pathname)
-  //   return NextResponse.redirect(signInUrl)
-  // }
+  if (!token) {
+    const signInUrl = new URL('/auth/signin', request.url)
+    signInUrl.searchParams.set('callbackUrl', pathname)
+    return NextResponse.redirect(signInUrl)
+  }
 
   // 执行权限检查
   // try {
