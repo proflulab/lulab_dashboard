@@ -13,7 +13,7 @@ import {
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useOrganizationStore } from '@/stores/organization-store'
+import { useOrganizationStore } from '@/stores/org-management-store'
 import { MemberService } from '@/services/member.service'
 
 interface AddUserDialogProps {
@@ -369,7 +369,7 @@ export function AddUserDialog({
                     <div className="space-y-4">
                         <h3 className="text-sm font-medium text-gray-900">权限信息</h3>
                         <div className="text-sm text-gray-500 bg-gray-50 p-3 rounded-md">
-                            {departmentName 
+                            {departmentName
                                 ? `用户将被添加到「${departmentName}」部门，并继承该部门的默认权限设置。创建后可在用户详情中进行权限调整。`
                                 : '用户创建后可在用户管理中分配角色和权限。'
                             }

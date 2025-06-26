@@ -14,7 +14,7 @@
 import React from "react"
 import { DataTable } from "./data-table"
 import { memberColumns } from "./columns"
-import { useOrganizationStore } from "@/stores/organization-store"
+import { useOrganizationStore } from "@/stores/org-management-store"
 
 export function MembersPage() {
     const {

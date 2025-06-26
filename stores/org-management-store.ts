@@ -7,7 +7,7 @@ import { DepartmentService } from '@/services/department.service'
 import { departmentService } from '@/lib/services/department.service'
 
 // 默认组织架构数据
-const defaultOrganizationData: DepartmentNode = {
+const defaultDepartmentNodeData: DepartmentNode = {
   id: 'company-root',
   name: '加载中...',
   memberCount: 0,
@@ -51,7 +51,7 @@ interface OrganizationActions {
 
   // 组织架构操作
   toggleNode: (nodeId: string) => void
-  selectNode: (nodeId: string) => void
+  selectNode: (nodeId: string) => Promise<void>
 
   // UI 操作
   setOrgPanelCollapsed: (collapsed: boolean) => void
@@ -76,7 +76,7 @@ type OrganizationStore = OrganizationState & OrganizationActions
 export const useOrganizationStore = create<OrganizationStore>()(devtools(
   (set, get) => ({
     // 初始状态
-    orgData: defaultOrganizationData,
+    orgData: defaultDepartmentNodeData,
     selectedNodeId: 'company-root',
     loading: true,
     members: [],
@@ -113,8 +113,6 @@ export const useOrganizationStore = create<OrganizationStore>()(devtools(
       }
     },
 
-
-
     // 组织架构操作
     toggleNode: (nodeId: string) => {
       const { orgData } = get()
@@ -135,41 +133,53 @@ export const useOrganizationStore = create<OrganizationStore>()(devtools(
       set({ orgData: updateNode(orgData) })
     },
 
-    selectNode: (nodeId: string) => {
+    // 获取部门成员数据
+    selectNode: async (nodeId: string) => {
       set({ selectedNodeId: nodeId })
+
+      // 重新加载该部门的成员数据
+      try {
+        const departmentMembers = await MemberService.fetchDepartmentMembers(nodeId)
+        set({ members: departmentMembers })
+      } catch (error) {
+        console.error('Error loading department members:', error)
+        // 如果获取部门成员失败，则获取所有成员
+        try {
+          const allMembers = await MemberService.fetchOrganizationMembers()
+          set({ members: allMembers })
+        } catch (fallbackError) {
+          console.error('Error loading organization members:', fallbackError)
+        }
+      }
     },
 
     // UI 操作
-
     setOrgPanelCollapsed: (collapsed: boolean) => {
       set({ isOrgPanelCollapsed: collapsed })
     },
 
-    // 侧边栏操作
+    // 成员管理侧边栏操作
     openMemberDetail: (member: Member) => {
       set({ selectedMemberDetail: member, isSidebarOpen: true })
+    },
+
+    // 部门编辑侧边栏操作
+    closeDepartmentSidebar: () => {
+      set({ isDepartmentSidebarOpen: false, selectedDepartmentDetail: null })
     },
 
     closeSidebar: () => {
       set({ isSidebarOpen: false, selectedMemberDetail: null })
     },
 
-    // 部门编辑侧边栏操作
 
-    closeDepartmentSidebar: () => {
-      set({ isDepartmentSidebarOpen: false, selectedDepartmentDetail: null })
-    },
 
-    // 部门管理操作
-
+    // 部门管理操作，编辑、添加子部门、上移、下移、删除
     handleMoreAction: async (nodeId: string, action: string) => {
       console.log(`Action '${action}' clicked for node:`, nodeId)
 
       try {
         switch (action) {
-          case 'export':
-            console.log('导出无岗位成员')
-            break
           case 'edit':
             try {
               const departmentDetail = await DepartmentService.getDepartmentDetail(nodeId)
@@ -235,7 +245,15 @@ export const useOrganizationStore = create<OrganizationStore>()(devtools(
       }
     },
 
-    // 添加子部门操作
+    // 添加部门操作
+    openAddChildDepartment: (parentNodeId: string, parentNodeName: string) => {
+      set({
+        isAddChildDepartmentOpen: true,
+        addChildParentNodeId: parentNodeId,
+        addChildParentNodeName: parentNodeName
+      })
+    },
+
     closeAddChildDepartment: () => {
       set({
         isAddChildDepartmentOpen: false,
@@ -264,6 +282,6 @@ export const useOrganizationStore = create<OrganizationStore>()(devtools(
     }
   }),
   {
-    name: 'organization-store'
+    name: 'org-management-store'
   }
 ))

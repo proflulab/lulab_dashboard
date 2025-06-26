@@ -2,8 +2,8 @@
  * @Author: 杨仕明 shiming.y@qq.com
  * @Date: 2025-06-23 02:34:33
  * @LastEditors: 杨仕明 shiming.y@qq.com
- * @LastEditTime: 2025-06-24 15:44:12
- * @FilePath: /lulab_dashboard/components/dashboard/contacts/deptuser/department-part/department-panel.tsx
+ * @LastEditTime: 2025-06-26 14:13:48
+ * @FilePath: /lulab_dashboard/components/dashboard/contacts/org-management/components/department-tree/department-panel.tsx
  * @Description: 
  * 
  * Copyright (c) 2025 by ${git_name_email}, All Rights Reserved. 
@@ -18,10 +18,11 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { LoadingState } from '@/components/common/loading-state'
 import { DepartmentNodeComponent } from './department-node'
 import { AddChildDepartmentDialog } from '../dialog/add-department'
-import { DepartmentDetailSidebar } from '@/components/dashboard/contacts/deptuser/sidebar/department-detail'
-import { useOrganizationStore } from '@/stores/organization-store'
+import { DepartmentDetailSidebar } from '@/components/dashboard/contacts/org-management/sidebar/department-detail'
+import { useOrganizationStore } from '@/stores/org-management-store'
 import { Plus } from 'lucide-react'
 
 export function DepartmentPanel() {
@@ -29,20 +30,10 @@ export function DepartmentPanel() {
     const {
         orgData,
         loading,
-        selectedNodeId,
         isOrgPanelCollapsed,
-        isDepartmentSidebarOpen,
-        selectedDepartmentDetail,
-        isAddChildDepartmentOpen,
-        addChildParentNodeId,
-        addChildParentNodeName,
-        toggleNode,
-        selectNode,
-        handleMoreAction,
-        closeDepartmentSidebar,
-        openAddChildDepartment,
-        closeAddChildDepartment,
+        openAddChildDepartment
     } = useOrganizationStore()
+
     if (isOrgPanelCollapsed) {
         return null
     }
@@ -67,24 +58,18 @@ export function DepartmentPanel() {
                         <div className="space-y-2">
                             {/* 动态渲染组织架构 */}
                             {loading ? (
-                                <div className="flex items-center justify-center p-4">
-                                    <div className="text-sm text-muted-foreground">加载中...</div>
-                                </div>
+                                <LoadingState />
                             ) : (
                                 <DepartmentNodeComponent
                                     key={orgData.id}
                                     node={orgData}
-                                    onToggle={toggleNode}
-                                    onSelect={selectNode}
-                                    selectedNodeId={selectedNodeId}
-                                    onMoreClick={handleMoreAction}
                                 />
                             )}
 
                             {/* 新建部门按钮 */}
                             <Button onClick={() => openAddChildDepartment(orgData.id, orgData.name)}
                                 variant="outline" size="sm" className="w-full justify-center text-sm text-gray-600 hover:text-gray-900">
-                                <Plus className="h-4 w-4 mr-2" />
+                                <Plus />
                                 新建部门
                             </Button>
                         </div>
@@ -93,19 +78,10 @@ export function DepartmentPanel() {
             </div>
 
             {/* 部门编辑侧边栏 */}
-            <DepartmentDetailSidebar
-                isOpen={isDepartmentSidebarOpen}
-                department={selectedDepartmentDetail}
-                onClose={closeDepartmentSidebar}
-            />
+            <DepartmentDetailSidebar />
 
-            {/* 添加子部门对话框 */}
-            <AddChildDepartmentDialog
-                isOpen={isAddChildDepartmentOpen}
-                onClose={closeAddChildDepartment}
-                parentNodeId={addChildParentNodeId}
-                parentNodeName={addChildParentNodeName}
-            />
+            {/* 新建部门对话框 */}
+            <AddChildDepartmentDialog />
         </>
     )
 }

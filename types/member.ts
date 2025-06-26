@@ -2,7 +2,7 @@
  * @Author: 杨仕明 shiming.y@qq.com
  * @Date: 2025-06-23 00:04:35
  * @LastEditors: 杨仕明 shiming.y@qq.com
- * @LastEditTime: 2025-06-24 17:02:02
+ * @LastEditTime: 2025-06-26 14:41:47
  * @FilePath: /lulab_dashboard/types/member.ts
  * @Description: 
  * 
@@ -13,6 +13,7 @@ export type AccountStatus = "正常" | "未设置"
 
 export interface Member {
   id: number
+  avatar: string
   name: string
   phone: string
   countryCode: string
@@ -21,7 +22,6 @@ export interface Member {
   status: MemberStatus
   accountStatus: AccountStatus
   email: string
-  avatar: string
 }
 
 export interface DepartmentNode {
@@ -35,4 +35,5 @@ export interface DepartmentNode {
   description?: string
   level?: number
   parentId?: string
+  logo?: string
 }

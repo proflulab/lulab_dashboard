@@ -4,6 +4,7 @@ model Organization {
     name        String // 组织名称
     code        String  @unique // 组织编码
     description String? // 组织描述
+    logo        String? // 组织logo
     parentId    String? // 父组织ID
     level       Int     @default(1) // 组织层级
     sortOrder   Int     @default(0) // 排序

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Users, ChevronDown, ChevronRight, MoreHorizontal } from 'lucide-react'
+import { Network, ChevronDown, ChevronRight, MoreHorizontal } from 'lucide-react'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -7,72 +7,64 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { DepartmentNode } from '@/types/member'
+import { useOrganizationStore } from '@/stores/org-management-store'
 
 interface OrganizationNodeComponentProps {
     node: DepartmentNode
     level?: number
-    onToggle: (nodeId: string) => void
-    selectedNodeId?: string
-    onSelect: (nodeId: string) => void
-    onMoreClick?: (nodeId: string, action: string) => void | Promise<void>
 }
 
 export function DepartmentNodeComponent({
     node,
-    level = 0,
-    onToggle,
-    selectedNodeId,
-    onSelect,
-    onMoreClick
+    level = 0
 }: OrganizationNodeComponentProps) {
-    const getNodeIcon = (type: string) => {
+    const { selectedNodeId, toggleNode, selectNode, handleMoreAction } = useOrganizationStore()
+
+    const getNodeIcon = (type: string, isSelected: boolean, text: string) => {
         switch (type) {
             case 'company':
                 return (
-                    <div className="w-6 h-6 bg-red-500 rounded flex items-center justify-center flex-shrink-0">
-                        <span className="text-white text-xs font-bold">Lu</span>
+                    <div className="w-6 h-6 rounded flex-shrink-0 overflow-hidden">
+                        {node.logo ? (
+                            <img
+                                src={node.logo}
+                                alt={text}
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <div className="w-full h-full bg-red-500 flex items-center justify-center text-sm font-medium text-gray-50">
+                                {node.name.charAt(0)}
+                            </div>
+                        )}
                     </div>
                 )
-            case 'department':
-            case 'team':
-                return <Users className="h-4 w-4 text-gray-500" />
             default:
-                return <Users className="h-4 w-4 text-gray-500" />
+                return <Network className={`h-4 w-4 ${isSelected ? 'text-red-600' : 'text-gray-400'}`} />
         }
     }
 
     const isSelected = selectedNodeId === node.id
 
-    const getNodeStyle = (type: string, isSelected: boolean) => {
-        if (isSelected) {
-            return 'bg-red-50 border border-red-200'
-        }
-        return 'hover:bg-gray-50'
-    }
-
-    const getTextStyle = (type: string, isSelected: boolean) => {
-        if (isSelected) {
-            return 'text-red-700'
-        }
-        return 'text-gray-900'
-    }
-
     return (
         <div>
             <div
-                className={`flex items-center space-x-2 p-2 rounded-lg cursor-pointer ${getNodeStyle(node.type, isSelected)}`}
+                className={`flex items-center space-x-2 p-2 rounded-lg cursor-pointer
+                    ${isSelected ? 'bg-red-50 border border-red-200' : 'hover:bg-gray-50'
+                    }`}
                 style={{ marginLeft: `${level * 16}px` }}
-                onClick={(e) => {
+                onClick={async (e) => {
                     e.stopPropagation()
-                    onSelect(node.id)
+                    await selectNode(node.id)
                     if (node.children && e.detail === 2) { // 双击展开/收起
-                        onToggle(node.id)
+                        toggleNode(node.id)
                     }
                 }}
             >
-                {getNodeIcon(node.type)}
+                {getNodeIcon(node.type, isSelected, node.name)}
                 <div className="flex-1 min-w-0">
-                    <div className={`text-sm font-medium truncate ${getTextStyle(node.type, isSelected)}`}>
+                    <div className={`text-sm font-medium truncate
+                    ${isSelected ? 'text-red-700' : 'text-gray-900'
+                        }`}>
                         {node.name}
                     </div>
                 </div>
@@ -82,7 +74,7 @@ export function DepartmentNodeComponent({
                             className="p-1 hover:bg-gray-200 rounded"
                             onClick={(e) => {
                                 e.stopPropagation()
-                                onToggle(node.id)
+                                toggleNode(node.id)
                             }}
                         >
                             {node.isExpanded ? (
@@ -102,18 +94,21 @@ export function DepartmentNodeComponent({
                             />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-24">
-                            <DropdownMenuItem onClick={() => onMoreClick?.(node.id, 'edit')}>
-                                编辑部门
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onMoreClick?.(node.id, 'addChild')}>
+                            {node.type !== 'company' && (
+                                <DropdownMenuItem onClick={() => handleMoreAction(node.id, 'edit')}>
+                                    编辑部门
+                                </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem onClick={() => handleMoreAction(node.id, 'addChild')}>
                                 添加子部门
                             </DropdownMenuItem>
-                            <DropdownMenuItem
-                                onClick={() => onMoreClick?.(node.id, 'delete')}
+                            {node.type !== 'company' && (<DropdownMenuItem
+                                onClick={() => handleMoreAction(node.id, 'delete')}
                                 className="text-red-600 focus:text-red-600"
                             >
                                 删除
                             </DropdownMenuItem>
+                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
@@ -127,10 +122,6 @@ export function DepartmentNodeComponent({
                             key={child.id}
                             node={child}
                             level={level + 1}
-                            onToggle={onToggle}
-                            selectedNodeId={selectedNodeId}
-                            onSelect={onSelect}
-                            onMoreClick={onMoreClick}
                         />
                     ))}
                 </div>

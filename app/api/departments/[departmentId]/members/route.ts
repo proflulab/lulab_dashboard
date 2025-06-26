@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { PermissionService } from '@/lib/services/permission.service'
-import { departmentService } from '@/lib/services/department.service'
+import db from '@/lib/db'
 
 /**
  * GET /api/departments/[departmentId]/members
@@ -45,7 +45,7 @@ export async function GET(
     const includeSubDepartments = searchParams.get('includeSubDepartments') === 'true'
 
     // 调用部门服务获取成员数据
-    const { departmentUsers, department, departmentIds } = await departmentService.getDepartmentMembers(
+    const { departmentUsers, department, departmentIds } = await db.department.getDepartmentMembersWithInfo(
       departmentId,
       includeSubDepartments
     )

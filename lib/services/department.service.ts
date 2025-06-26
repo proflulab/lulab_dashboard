@@ -2,7 +2,7 @@
  * @Author: 杨仕明 shiming.y@qq.com
  * @Date: 2025-06-23 14:03:24
  * @LastEditors: 杨仕明 shiming.y@qq.com
- * @LastEditTime: 2025-06-25 12:38:39
+ * @LastEditTime: 2025-06-26 16:06:34
  * @FilePath: /lulab_dashboard/lib/services/department.service.ts
  * @Description: 
  * 
@@ -30,9 +30,9 @@ export interface DepartmentNode {
 export const departmentService = {
 
     /**
-     * Description:创建部门
-     * @param {any} departmentData:{name:stringdescription?:stringparentId?:string|nulltype?:stringcode?:stringresponsiblePerson?:stringcontactInfo?:string}
-     * @returns {any}
+     * 创建部门
+     * @param departmentData 部门数据
+     * @returns 创建的部门信息
      */
     async createDepartment(departmentData: {
         name: string
@@ -217,13 +217,13 @@ export const departmentService = {
             }
         })
 
-        return departments.map(dept => this.buildDepartmentNode(dept))
+        return Promise.all(departments.map(dept => this.buildDepartmentNode(dept)))
     },
 
     /**
      * 构建部门节点
      */
-    buildDepartmentNode(department: any): DepartmentNode {
+    async buildDepartmentNode(department: any): Promise<DepartmentNode> {
         const memberCount = this.calculateDepartmentUserCount(department)
 
         // 构建子部门节点
@@ -236,7 +236,7 @@ export const departmentService = {
         return {
             id: department.id,
             name: department.name,
-            memberCount,
+            memberCount: memberCount,
             type: nodeType,
             code: department.code,
             description: department.description,
@@ -247,8 +247,9 @@ export const departmentService = {
         }
     },
 
+
     /**
-     * 计算部门用户数量（包括子部门）
+     * 计算部门用户数量（同步版本，包括子部门）
      */
     calculateDepartmentUserCount(department: any): number {
         const directUsers = department.users?.length || 0
@@ -260,10 +261,10 @@ export const departmentService = {
     },
 
     /**
-     * 计算部门用户数量（包括子部门）- 异步版本
+     * 计算部门用户数量（异步版本，包括子部门）
      */
     async calculateDepartmentUserCountAsync(departmentId: string): Promise<number> {
-        const allDepartmentIds = [departmentId, ...(await getAllSubDepartmentIds(departmentId))]
+        const allDepartmentIds = [departmentId, ...(await this.getAllSubDepartmentIds(departmentId))]
 
         // 计算所有相关部门的用户数量
         const userCount = await prisma.userDepartment.count({
@@ -474,7 +475,7 @@ export const departmentService = {
         let departmentIds = [departmentId]
 
         if (includeSubDepartments) {
-            const subDepartmentIds = await getAllSubDepartmentIds(departmentId)
+            const subDepartmentIds = await this.getAllSubDepartmentIds(departmentId)
             departmentIds = departmentIds.concat(subDepartmentIds)
         }
 
@@ -511,148 +512,145 @@ export const departmentService = {
             roles: userDept.user.roles?.map(userRole => userRole.role.name) || [],
             status: userDept.user.active ? 'active' : 'inactive'
         }))
-    }
-}
+    },
 
+    /**
+     * 递归获取所有子部门ID
+     * @param parentId 父部门ID
+     * @returns 所有子部门ID数组
+     */
+    async getAllSubDepartmentIds(parentId: string): Promise<string[]> {
+        const subDepartments = await prisma.department.findMany({
+            where: {
+                parentId,
+                active: true
+            },
+            select: { id: true }
+        })
 
-/**
- * 递归获取所有子部门ID
- * @param parentId 父部门ID
- * @returns 所有子部门ID数组
- */
-export async function getAllSubDepartmentIds(parentId: string): Promise<string[]> {
-    const subDepartments = await prisma.department.findMany({
-        where: {
-            parentId,
-            active: true
-        },
-        select: { id: true }
-    })
+        let allIds = subDepartments.map(dept => dept.id)
 
-    let allIds = subDepartments.map(dept => dept.id)
+        for (const subDept of subDepartments) {
+            const subSubIds = await this.getAllSubDepartmentIds(subDept.id)
+            allIds = allIds.concat(subSubIds)
+        }
 
-    for (const subDept of subDepartments) {
-        const subSubIds = await getAllSubDepartmentIds(subDept.id)
-        allIds = allIds.concat(subSubIds)
-    }
+        return allIds
+    },
 
-    return allIds
-}
+    /**
+     * 获取部门ID列表（包含或不包含子部门）
+     * @param departmentId 部门ID
+     * @param includeSubDepartments 是否包含子部门
+     * @returns 部门ID数组
+     */
+    async getDepartmentIds(departmentId: string, includeSubDepartments: boolean = false): Promise<string[]> {
+        let departmentIds = [departmentId]
 
-/**
- * 获取部门ID列表（包含或不包含子部门）
- * @param departmentId 部门ID
- * @param includeSubDepartments 是否包含子部门
- * @returns 部门ID数组
- */
-export async function getDepartmentIds(departmentId: string, includeSubDepartments: boolean = false): Promise<string[]> {
-    let departmentIds = [departmentId]
+        if (includeSubDepartments) {
+            const subDepartmentIds = await this.getAllSubDepartmentIds(departmentId)
+            departmentIds = departmentIds.concat(subDepartmentIds)
+        }
 
-    if (includeSubDepartments) {
-        const subDepartmentIds = await getAllSubDepartmentIds(departmentId)
-        departmentIds = departmentIds.concat(subDepartmentIds)
-    }
+        return departmentIds
+    },
 
-    return departmentIds
-}
-
-/**
- * 获取部门用户关系数据
- * @param departmentIds 部门ID数组
- * @returns 部门用户关系列表
- */
-export async function getDepartmentUsers(departmentIds: string[]) {
-    return await prisma.userDepartment.findMany({
-        where: {
-            departmentId: {
-                in: departmentIds
-            }
-        },
-        include: {
-            user: {
-                include: {
-                    profile: true,
-                    roles: {
-                        include: {
-                            role: true
-                        }
-                    },
-                    organizations: {
-                        include: {
-                            organization: true
-                        }
-                    }
+    /**
+     * 获取部门用户关系数据
+     * @param departmentIds 部门ID数组
+     * @returns 部门用户关系列表
+     */
+    async getDepartmentUsers(departmentIds: string[]) {
+        return await prisma.userDepartment.findMany({
+            where: {
+                departmentId: {
+                    in: departmentIds
                 }
             },
-            department: {
-                include: {
-                    organization: true
+            include: {
+                user: {
+                    include: {
+                        profile: true,
+                        roles: {
+                            include: {
+                                role: true
+                            }
+                        },
+                        organizations: {
+                            include: {
+                                organization: true
+                            }
+                        }
+                    }
+                },
+                department: {
+                    include: {
+                        organization: true
+                    }
                 }
             }
+        })
+    },
+
+    /**
+     * 获取部门详细信息
+     * @param departmentId 部门ID
+     * @returns 部门信息
+     */
+    async getDepartmentInfo(departmentId: string) {
+        return await prisma.department.findUnique({
+            where: { id: departmentId },
+            include: {
+                organization: true,
+                parent: true
+            }
+        })
+    },
+
+    /**
+     * 获取部门基本信息（不包含关联数据）
+     * @param departmentId 部门ID
+     * @returns 部门基本信息
+     */
+    async getDepartmentBasic(departmentId: string) {
+        return await prisma.department.findUnique({
+            where: { id: departmentId }
+        })
+    },
+
+    /**
+     * 检查部门是否存在且激活
+     * @param departmentId 部门ID
+     * @returns 是否存在且激活
+     */
+    async isDepartmentActive(departmentId: string): Promise<boolean> {
+        const department = await prisma.department.findUnique({
+            where: { id: departmentId },
+            select: { active: true }
+        })
+        return department?.active ?? false
+    },
+
+    /**
+     * 获取部门成员（包括子部门）- 完整版本
+     * @param departmentId 部门ID
+     * @param includeSubDepartments 是否包含子部门
+     * @returns 部门成员列表和部门信息
+     */
+    async getDepartmentMembersWithInfo(departmentId: string, includeSubDepartments: boolean = false) {
+        // 获取部门ID列表
+        const departmentIds = await this.getDepartmentIds(departmentId, includeSubDepartments)
+
+        // 获取部门成员
+        const departmentUsers = await this.getDepartmentUsers(departmentIds)
+
+        // 获取部门信息
+        const department = await this.getDepartmentInfo(departmentId)
+
+        return {
+            departmentUsers,
+            department,
+            departmentIds
         }
-    })
-
-
-}
-
-/**
- * 获取部门详细信息
- * @param departmentId 部门ID
- * @returns 部门信息
- */
-export async function getDepartmentInfo(departmentId: string) {
-    return await prisma.department.findUnique({
-        where: { id: departmentId },
-        include: {
-            organization: true,
-            parent: true
-        }
-    })
-}
-
-/**
- * 获取部门基本信息（不包含关联数据）
- * @param departmentId 部门ID
- * @returns 部门基本信息
- */
-export async function getDepartmentBasic(departmentId: string) {
-    return await prisma.department.findUnique({
-        where: { id: departmentId }
-    })
-}
-
-/**
- * 检查部门是否存在且激活
- * @param departmentId 部门ID
- * @returns 是否存在且激活
- */
-export async function isDepartmentActive(departmentId: string): Promise<boolean> {
-    const department = await prisma.department.findUnique({
-        where: { id: departmentId },
-        select: { active: true }
-    })
-    return department?.active ?? false
-}
-
-/**
- * 获取部门成员（包括子部门）
- * @param departmentId 部门ID
- * @param includeSubDepartments 是否包含子部门
- * @returns 部门成员列表和部门信息
- */
-export async function getDepartmentMembers(departmentId: string, includeSubDepartments: boolean = false) {
-    // 获取部门ID列表
-    const departmentIds = await getDepartmentIds(departmentId, includeSubDepartments)
-
-    // 获取部门成员
-    const departmentUsers = await getDepartmentUsers(departmentIds)
-
-    // 获取部门信息
-    const department = await getDepartmentInfo(departmentId)
-
-    return {
-        departmentUsers,
-        department,
-        departmentIds
     }
 }

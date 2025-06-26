@@ -2,7 +2,7 @@
  * @Author: 杨仕明 shiming.y@qq.com
  * @Date: 2025-06-24 15:52:27
  * @LastEditors: 杨仕明 shiming.y@qq.com
- * @LastEditTime: 2025-06-24 17:01:31
+ * @LastEditTime: 2025-06-25 14:08:20
  * @FilePath: /lulab_dashboard/services/department.service.ts
  * @Description: 
  * 
@@ -39,23 +39,6 @@ export class DepartmentService {
             return data.data
         } catch (error) {
             console.error('Error updating department:', error)
-            throw error
-        }
-    }
-
-    /**
-     * 删除部门
-     */
-    static async deleteDepartment(departmentId: string): Promise<void> {
-        try {
-            const response = await fetch(`/api/departments/${departmentId}`, {
-                method: 'DELETE',
-            })
-            if (!response.ok) {
-                throw new Error('Failed to delete department')
-            }
-        } catch (error) {
-            console.error('Error deleting department:', error)
             throw error
         }
     }

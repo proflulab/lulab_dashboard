@@ -2,17 +2,17 @@
  * @Author: 杨仕明 shiming.y@qq.com
  * @Date: 2025-06-23 00:55:42
  * @LastEditors: 杨仕明 shiming.y@qq.com
- * @LastEditTime: 2025-06-24 02:50:40
- * @FilePath: /lulab_dashboard/components/dashboard/contacts/departmentanduser/members-tab.tsx
+ * @LastEditTime: 2025-06-26 15:05:19
+ * @FilePath: /lulab_dashboard/components/dashboard/contacts/org-management/tabs/members-tab.tsx
  * @Description: 
  * 
  * Copyright (c) 2025 by ${git_name_email}, All Rights Reserved. 
  */
 import React, { useEffect } from 'react'
-import { MembersPage } from './members-table/page'
-import { DepartmentPanel } from './department-part/department-panel'
-import { MemberDetailSidebar } from '@/components/dashboard/contacts/deptuser/sidebar/member-detail'
-import { useOrganizationStore } from '@/stores/organization-store'
+import { MembersPage } from '../components/members-table/page'
+import { DepartmentPanel } from '../components/department-tree/department-panel'
+import { MemberDetailSidebar } from '@/components/dashboard/contacts/org-management/sidebar/member-detail'
+import { useOrganizationStore } from '@/stores/org-management-store'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -44,7 +44,7 @@ export function MembersTab() {
         {/* 左侧组织架构 */}
         <DepartmentPanel />
 
-        {/* 右侧成员列表 */}
+        {/* 右侧成员内容 */}
         <div className="flex-1">
           <Card>
             <CardHeader>
@@ -83,6 +83,7 @@ export function MembersTab() {
               </div>
             </CardHeader>
             <CardContent>
+              {/* 成员列表 */}
               <MembersPage />
             </CardContent>
           </Card>

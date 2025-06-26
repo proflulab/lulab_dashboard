@@ -5,26 +5,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { X, ChevronLeft, ChevronRight, Edit2, Save, X as XIcon, Users } from "lucide-react"
-import { OrganizationNode } from "@/types/member"
+import { DepartmentNode } from "@/types/member"
+import { useOrganizationStore } from "@/stores/org-management-store"
 
-interface DepartmentDetailSidebarProps {
-    isOpen: boolean
-    department: OrganizationNode | null
-    onClose: () => void
-}
-
-export function DepartmentDetailSidebar({ isOpen, department, onClose }: DepartmentDetailSidebarProps) {
+export function DepartmentDetailSidebar() {
+    const { isDepartmentSidebarOpen, selectedDepartmentDetail, closeDepartmentSidebar } = useOrganizationStore()
     const [activeTab, setActiveTab] = useState("basic")
     const [isEditing, setIsEditing] = useState(false)
-    const [editedDepartment, setEditedDepartment] = useState<OrganizationNode | null>(null)
+    const [editedDepartment, setEditedDepartment] = useState<DepartmentNode | null>(null)
 
-    // 当department变化时，重置编辑状态
+    // 当selectedDepartmentDetail变化时，重置编辑状态
     React.useEffect(() => {
-        if (department) {
-            setEditedDepartment({ ...department })
+        if (selectedDepartmentDetail) {
+            setEditedDepartment({ ...selectedDepartmentDetail })
             setIsEditing(false)
         }
-    }, [department])
+    }, [selectedDepartmentDetail])
 
     const getButtonText = () => {
         if (isEditing) {
@@ -57,8 +53,8 @@ export function DepartmentDetailSidebar({ isOpen, department, onClose }: Departm
     }
 
     const handleCancel = () => {
-        if (department) {
-            setEditedDepartment({ ...department })
+        if (selectedDepartmentDetail) {
+            setEditedDepartment({ ...selectedDepartmentDetail })
         }
         setIsEditing(false)
     }
@@ -68,7 +64,7 @@ export function DepartmentDetailSidebar({ isOpen, department, onClose }: Departm
             setEditedDepartment({
                 ...editedDepartment,
                 [field]: value
-            } as OrganizationNode)
+            } as DepartmentNode)
         }
     }
 
@@ -109,7 +105,7 @@ export function DepartmentDetailSidebar({ isOpen, department, onClose }: Departm
         }
     }
 
-    if (!isOpen || !department) {
+    if (!isDepartmentSidebarOpen || !selectedDepartmentDetail) {
         return null
     }
 
@@ -135,7 +131,7 @@ export function DepartmentDetailSidebar({ isOpen, department, onClose }: Departm
                     <Button
                         variant="ghost"
                         size="sm"
-                        onClick={onClose}
+                        onClick={closeDepartmentSidebar}
                         className="h-8 w-8 p-0"
                     >
                         <X className="h-4 w-4" />
@@ -147,13 +143,13 @@ export function DepartmentDetailSidebar({ isOpen, department, onClose }: Departm
                     {/* 部门图标和基本信息 */}
                     <div className="p-6 border-b flex-shrink-0">
                         <div className="flex items-center space-x-4">
-                            {getDepartmentIcon(department.type)}
+                            {getDepartmentIcon(selectedDepartmentDetail.type)}
                             <div className="flex-1">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center space-x-2">
-                                        <h3 className="text-xl font-semibold">{department.name}</h3>
+                                        <h3 className="text-xl font-semibold">{selectedDepartmentDetail.name}</h3>
                                         <Badge variant="default" className="bg-blue-100 text-blue-800 text-xs">
-                                            {getTypeDisplayName(department.type)}
+                                            {getTypeDisplayName(selectedDepartmentDetail.type)}
                                         </Badge>
                                     </div>
                                     <DropdownMenu>
@@ -182,7 +178,7 @@ export function DepartmentDetailSidebar({ isOpen, department, onClose }: Departm
                                     </DropdownMenu>
                                 </div>
                                 <div className="mt-1 text-sm text-gray-500">
-                                    {department.memberCount} 名成员
+                                    {selectedDepartmentDetail.memberCount} 名成员
                                 </div>
                             </div>
                         </div>
@@ -209,18 +205,18 @@ export function DepartmentDetailSidebar({ isOpen, department, onClose }: Departm
                                                 className="mt-1"
                                             />
                                         ) : (
-                                            <p className="mt-1 text-sm">{department.name}</p>
+                                            <p className="mt-1 text-sm">{selectedDepartmentDetail.name}</p>
                                         )}
                                     </div>
 
                                     <div>
                                         <label className="text-sm font-medium text-gray-500">部门类型</label>
-                                        <p className="mt-1 text-sm">{getTypeDisplayName(department.type)}</p>
+                                        <p className="mt-1 text-sm">{getTypeDisplayName(selectedDepartmentDetail.type)}</p>
                                     </div>
 
                                     <div>
                                         <label className="text-sm font-medium text-gray-500">部门 ID</label>
-                                        <p className="mt-1 text-sm">{department.id}</p>
+                                        <p className="mt-1 text-sm">{selectedDepartmentDetail.id}</p>
                                     </div>
 
                                     <div>
@@ -233,7 +229,7 @@ export function DepartmentDetailSidebar({ isOpen, department, onClose }: Departm
                                                 className="mt-1"
                                             />
                                         ) : (
-                                            <p className="mt-1 text-sm">{department.memberCount} 名成员</p>
+                                            <p className="mt-1 text-sm">{selectedDepartmentDetail.memberCount} 名成员</p>
                                         )}
                                     </div>
 

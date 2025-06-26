@@ -15,7 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Checkbox } from "@/components/ui/checkbox"
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react"
 import { Member } from "@/types/member"
-import { useOrganizationStore } from "@/stores/organization-store"
+import { useOrganizationStore } from "@/stores/org-management-store"
 
 export const memberColumns: ColumnDef<Member>[] = [
     {

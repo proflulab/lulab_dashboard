@@ -58,7 +58,7 @@ const menuItems = [
     items: [
       {
         title: "成员与部门",
-        url: "/dashboard/contacts/deptuser",
+        url: "/dashboard/contacts/org-management",
         permission: "dashboard.view",
       },
       {

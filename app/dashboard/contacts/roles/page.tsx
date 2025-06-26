@@ -13,7 +13,7 @@
 import React, { useState } from "react"
 import { Shield } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { RoleManagement } from "@/components/dashboard/contacts/role/role-management"
+import { RoleManagement } from "@/components/dashboard/contacts/roles/role-management"
 import { usePermission } from "@/hooks/use-permission"
 
 export default function RolePage() {
