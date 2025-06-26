@@ -115,13 +115,37 @@ export const userService = {
     })
   },
 
+  // 用于认证的用户查询（从auth.config.ts封装而来）
+  async getForAuthentication(email: string) {
+    return await prisma.user.findUnique({
+      where: {
+        email,
+        deletedAt: null, // 排除软删除的用户
+        active: true     // 只查询激活的用户
+      },
+      include: {
+        profile: true,
+        roles: {
+          where: {
+            role: {
+              active: true,
+              isDeleted: false
+            }
+          },
+          include: {
+            role: true
+          }
+        }
+      }
+    })
+  },
+
   async create(data: {
     email: string
     password?: string
     countryCode?: string
     phone?: string
     active?: boolean
-    // Profile data
     name?: string
     avatar?: string
     bio?: string

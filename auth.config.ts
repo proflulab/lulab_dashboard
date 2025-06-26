@@ -2,7 +2,7 @@
  * @Author: 杨仕明 shiming.y@qq.com
  * @Date: 2025-06-15 20:02:18
  * @LastEditors: 杨仕明 shiming.y@qq.com
- * @LastEditTime: 2025-06-27 03:07:07
+ * @LastEditTime: 2025-06-27 03:18:56
  * @FilePath: /lulab_dashboard/auth.config.ts
  * @Description: 
  * 
@@ -14,6 +14,7 @@ import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 import bcrypt from "bcryptjs"
 import { PrismaAdapter } from "@auth/prisma-adapter"
+import { userService } from '@/lib/services/user.service'
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -31,27 +32,7 @@ const authConfig = {
           const { email, password } = parsedCredentials.data
 
           // 从数据库查找用户
-          const user = await prisma.user.findUnique({
-            where: {
-              email,
-              deletedAt: null, // 排除软删除的用户
-              active: true     // 只查询激活的用户
-            },
-            include: {
-              profile: true,
-              roles: {
-                where: {
-                  role: {
-                    active: true,
-                    isDeleted: false
-                  }
-                },
-                include: {
-                  role: true
-                }
-              }
-            }
-          })
+          const user = await userService.getForAuthentication(email)
 
           if (!user) {
             return null // 用户不存在

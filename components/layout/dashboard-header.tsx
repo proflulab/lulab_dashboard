@@ -2,7 +2,7 @@
  * @Author: 杨仕明 shiming.y@qq.com
  * @Date: 2025-06-15 20:03:56
  * @LastEditors: 杨仕明 shiming.y@qq.com
- * @LastEditTime: 2025-06-26 18:35:12
+ * @LastEditTime: 2025-06-27 03:21:45
  * @FilePath: /lulab_dashboard/components/layout/dashboard-header.tsx
  * @Description: 
  * 
@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { User, LogOut, Settings } from "lucide-react"
+import { SidebarTrigger } from "@/components/ui/sidebar"
 
 interface DashboardHeaderProps {
   user?: {
@@ -42,8 +43,8 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
       <div className="flex items-center justify-between h-full">
         {/* TODO: 后台管理搜索功能 */}
         <div className="flex items-center space-x-4">
-          {/* <SidebarTrigger />
-          <div className="relative">
+          <SidebarTrigger />
+          {/* <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder="搜索..."
