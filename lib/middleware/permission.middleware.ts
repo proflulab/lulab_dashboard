@@ -378,7 +378,7 @@ async function validatePermissions(
 
     // 尝试从缓存获取权限信息
     let cache = getUserPermissionCache(userId)
-    let userInfo: any = null
+    let userInfo: UserPermissionInfo | null = null
 
     if (!cache) {
       // 缓存未命中，从数据库获取
@@ -466,7 +466,7 @@ async function validatePermissions(
       }
 
       if (userInfo) {
-        const hasResourceAccess = userInfo.permissions.some((p: any) =>
+        const hasResourceAccess = userInfo.permissions.some((p) =>
           p.resource === config.resource &&
           (p.action === config.action || p.action === '*') &&
           p.active

@@ -46,8 +46,7 @@ export default function SignInPage() {
       if (result?.error) {
         setError("邮箱或密码错误")
       } else {
-        router.push("/dashboard")
-        router.refresh()
+        router.replace('/dashboard')
       }
     } catch {
       setError("登录失败，请重试")

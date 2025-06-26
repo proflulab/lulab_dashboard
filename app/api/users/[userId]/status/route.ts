@@ -1,3 +1,4 @@
+
 /*
  * 用户状态管理 API 路由
  * 用于用户状态的启用/禁用操作
@@ -39,6 +40,7 @@ export async function PUT(
       session.user.id,
       'users.edit'
     )
+
     if (!hasPermission.hasPermission) {
       return NextResponse.json(
         { error: '权限不足' },

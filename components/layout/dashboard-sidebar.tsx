@@ -20,10 +20,10 @@ import {
 import {
   LayoutDashboard,
   Users,
-  BookOpen,
+  // BookOpen, // 暂时不需要
   // GraduationCap, // 暂时不需要
-  Settings,
-  BarChart,
+  // Settings,
+  // BarChart, // 暂时不需要
   // ShoppingCart, // 暂时不需要
   ChevronRight,
   // Shield, // 暂时不需要
@@ -38,6 +38,23 @@ import {
 import { MenuGuard } from "@/components/auth/permission-guard"
 // import { useSession } from 'next-auth/react' // 暂时不需要
 
+// 定义菜单项类型
+interface MenuItem {
+  title: string
+  url: string
+  permission?: string
+}
+
+interface MenuGroup {
+  title: string
+  groupIcon: React.ComponentType<{ className?: string }>
+  permission?: string
+  items: MenuItem[]
+}
+
+// TODO: 侧边栏设置菜单功能
+// TODO: 侧边栏设置角色管理功能
+// TODO: 侧边栏设置组织管理功能
 const menuItems = [
   {
     title: "概览",
@@ -51,23 +68,28 @@ const menuItems = [
       }
     ],
   },
-  // {
-  //   title: "用户管理",
-  //   groupIcon: Users,
-  //   permission: "users.view",
-  //   items: [
-  //     {
-  //       title: "会员管理",
-  //       url: "/dashboard/students",
-  //       permission: "users.view",
-  //     },
-  //     {
-  //       title: "教师管理",
-  //       url: "/dashboard/teachers",
-  //       permission: "users.view",
-  //     },
-  //   ],
-  // },
+  {
+    title: "组织架构",
+    groupIcon: Users,
+    permission: "dashboard.view",
+    items: [
+      {
+        title: "成员与部门",
+        url: "/dashboard/contacts/org-management",
+        permission: "dashboard.view",
+      },
+      // {
+      //   title: "角色管理",
+      //   url: "/dashboard/contacts/roles",
+      //   permission: "dashboard.view",
+      // },
+      // {
+      //   title: "组织管理",
+      //   url: "/dashboard/perms",
+      //   permission: "dashboard.view",
+      // },
+    ],
+  },
   // {
   //   title: "业务管理",
   //   groupIcon: BookOpen,
@@ -102,34 +124,103 @@ const menuItems = [
   //     },
   //   ],
   // },
-  {
-    title: "系统",
-    groupIcon: Settings,
-    permission: "system.settings",
-    items: [
-      // {
-      //   title: "系统设置",
-      //   url: "/dashboard/settings",
-      //   permission: "system.settings",
-      // },
-      {
-        title: "权限管理",
-        url: "/dashboard/permissions",
-        permission: "permissions.view",
-      },
-    ],
-  },
+  // {
+  //   title: "系统",
+  //   groupIcon: Settings,
+  //   permission: "system.settings",
+  //   items: [
+  //     {
+  //       title: "系统设置",
+  //       url: "/dashboard/settings",
+  //       permission: "system.settings",
+  //     },
+  //   ],
+  // },
 ]
+
+interface OrganizationInfo {
+  id: string
+  name: string
+  code: string
+}
+
+// 单独的下拉菜单组件，避免 hooks 规则违反
+function CollapsedDropdownMenu({ group, pathname }: { group: MenuGroup, pathname: string }) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <MenuGuard key={group.title} permission={group.permission || 'dashboard.view'}>
+      <SidebarMenuItem>
+        <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+          <DropdownMenuTrigger asChild>
+            <SidebarMenuButton
+              onMouseEnter={() => setIsOpen(true)}
+              onMouseLeave={() => setIsOpen(false)}
+            >
+              {group.groupIcon && <group.groupIcon className="h-4 w-4" />}
+              <span className="transition-all duration-300 ease-in-out group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:overflow-hidden whitespace-nowrap">{group.title}</span>
+            </SidebarMenuButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            side="right"
+            align="start"
+            className="w-48"
+            onMouseEnter={() => setIsOpen(true)}
+            onMouseLeave={() => setIsOpen(false)}
+          >
+            {group.items.map((item: MenuItem) => {
+              const isActive = pathname === item.url
+
+              return (
+                <MenuGuard key={item.title} permission={item.permission || 'dashboard.view'}>
+                  <DropdownMenuItem asChild>
+                    <Link href={item.url} className={`flex items-center ${isActive ? 'bg-accent' : ''}`}>
+                      <span>{item.title}</span>
+                    </Link>
+                  </DropdownMenuItem>
+                </MenuGuard>
+              )
+            })}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarMenuItem>
+    </MenuGuard>
+  )
+}
 
 export function DashboardSidebar() {
   const pathname = usePathname()
   const { state } = useSidebar()
-  // const { data: _session } = useSession() // 暂时不需要
   const [openGroups, setOpenGroups] = useState<string[]>([])
   const [isClient, setIsClient] = useState(false)
+  const [organizationInfo, setOrganizationInfo] = useState<OrganizationInfo>({
+    id: '',
+    name: '',
+    code: ''
+  })
 
   useEffect(() => {
     setIsClient(true)
+
+    // 获取组织信息
+    const fetchOrganizationInfo = async () => {
+      try {
+        const response = await fetch('/api/organization')
+        if (response.ok) {
+          const orgData = await response.json()
+          setOrganizationInfo({
+            id: orgData.id,
+            name: orgData.name,
+            code: orgData.code.charAt(0).toUpperCase() // 取组织代码的第一个字母作为图标
+          })
+        }
+      } catch (error) {
+        console.error('获取组织信息失败:', error)
+        // 保持默认值
+      }
+    }
+
+    fetchOrganizationInfo()
   }, [])
 
   const toggleGroup = (groupTitle: string) => {
@@ -155,11 +246,11 @@ export function DashboardSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="px-4 py-4 group-data-[collapsible=icon]:px-2 h-16">
         <div className="flex items-center space-x-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:space-x-0 h-full">
-          <div className="w-8 h-8 group-data-[collapsible=icon]:w-6 group-data-[collapsible=icon]:h-6 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm group-data-[collapsible=icon]:text-xs">L</span>
+          <div className="w-8 h-8 group-data-[collapsible=icon]:w-6 group-data-[collapsible=icon]:h-6 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0 aspect-square">
+            <span className="text-white font-bold text-sm group-data-[collapsible=icon]:text-xs">{organizationInfo.code}</span>
           </div>
           <div className="transition-all duration-300 ease-in-out group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:overflow-hidden">
-            <h2 className="text-lg font-semibold whitespace-nowrap">陆向谦实验室</h2>
+            <h2 className="text-lg font-semibold whitespace-nowrap">{organizationInfo.name}</h2>
             <p className="text-xs text-muted-foreground whitespace-nowrap">管理系统</p>
           </div>
         </div>
@@ -195,35 +286,7 @@ export function DashboardSidebar() {
                 // 有多个子项的显示为可折叠的二级菜单
                 // 在折叠状态下使用下拉菜单，展开状态下使用可折叠菜单
                 if (state === "collapsed") {
-                  return (
-                    <MenuGuard key={group.title} permission={group.permission || 'dashboard.view'}>
-                      <SidebarMenuItem>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <SidebarMenuButton tooltip={group.title}>
-                              {group.groupIcon && <group.groupIcon className="h-4 w-4" />}
-                              <span className="transition-all duration-300 ease-in-out group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:overflow-hidden whitespace-nowrap">{group.title}</span>
-                            </SidebarMenuButton>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent side="right" align="start" className="w-48">
-                            {group.items.map((item) => {
-                              const isActive = pathname === item.url
-
-                              return (
-                                <MenuGuard key={item.title} permission={item.permission || 'dashboard.view'}>
-                                  <DropdownMenuItem asChild>
-                                    <Link href={item.url} className={`flex items-center ${isActive ? 'bg-accent' : ''}`}>
-                                      <span>{item.title}</span>
-                                    </Link>
-                                  </DropdownMenuItem>
-                                </MenuGuard>
-                              )
-                            })}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </SidebarMenuItem>
-                    </MenuGuard>
-                  )
+                  return <CollapsedDropdownMenu key={group.title} group={group} pathname={pathname} />
                 }
 
                 return (

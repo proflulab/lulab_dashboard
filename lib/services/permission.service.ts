@@ -5,6 +5,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { User } from '@prisma/client'
+import { UserPermissionInfo } from '@/lib/middleware/types'
 
 // 本地类型定义，避免直接导入Prisma生成的类型
 interface Role {
@@ -62,15 +63,7 @@ interface PermissionCheckResult {
   level?: number
 }
 
-// 用户权限信息接口
-interface UserPermissionInfo {
-  user: User
-  organizations: Organization[]
-  departments: Department[]
-  roles: Role[]
-  permissions: Permission[]
-  dataPermissions: string[]
-}
+// 用户权限信息接口已从 @/lib/middleware/types 导入
 
 export class PermissionService {
   /**
@@ -162,7 +155,12 @@ export class PermissionService {
     const dataPermissions = user.dataPermissions?.map((udp) => udp.rule.code) || []
 
     return {
-      user,
+      user: {
+        id: user.id,
+        name: null, // User表中没有name字段，设为null
+        email: user.email,
+        active: user.active
+      },
       organizations: userOrganizations,
       departments: userDepartments,
       roles: userRoles,

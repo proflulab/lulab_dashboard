@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
         )
       }
       body = JSON.parse(text)
-    } catch (error) {
+    } catch {
       return NextResponse.json(
         { error: '请求体格式错误，必须是有效的JSON' },
         { status: 400 }

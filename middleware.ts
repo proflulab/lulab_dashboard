@@ -2,7 +2,7 @@
  * @Author: 杨仕明 shiming.y@qq.com
  * @Date: 2025-06-15 20:02:32
  * @LastEditors: 杨仕明 shiming.y@qq.com
- * @LastEditTime: 2025-06-19 16:30:22
+ * @LastEditTime: 2025-06-27 03:10:23
  * @FilePath: /lulab_dashboard/middleware.ts
  * @Description:
  * Next.js 中间件
@@ -11,14 +11,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getToken } from 'next-auth/jwt'
 import { permissionMiddleware } from '@/lib/middleware/permission.middleware'
 
-// 配置常量
-const PUBLIC_PATHS = {
-  AUTH: ['/auth/signin', '/auth/signup', '/auth/error'] as string[],
-  PUBLIC: ['/'] as string[] // 如果首页是公开的
-}
 
 // 静态文件跳过模式（用于正则匹配）
 const SKIP_PATTERNS = [
@@ -36,13 +30,6 @@ function shouldSkipMiddleware(pathname: string): boolean {
 }
 
 /**
- * 检查是否为公共路径
- */
-function isPublicPath(pathname: string): boolean {
-  return PUBLIC_PATHS.AUTH.includes(pathname)
-}
-
-/**
  * 中间件主函数
  */
 export async function middleware(request: NextRequest) {
@@ -51,33 +38,6 @@ export async function middleware(request: NextRequest) {
   // 跳过静态资源和 API 路由的权限检查
   if (shouldSkipMiddleware(pathname)) {
     return NextResponse.next()
-  }
-
-  if (!process.env.NEXTAUTH_SECRET) {
-    console.error('NEXTAUTH_SECRET 环境变量未设置')
-    return NextResponse.json({ error: '服务器配置错误' }, { status: 500 })
-  }
-
-  // 获取用户 token
-  const token = await getToken({
-    req: request,
-    secret: process.env.NEXTAUTH_SECRET
-  })
-
-  // 公开页面，无需认证
-  if (isPublicPath(pathname)) {
-    // 如果已登录用户访问登录页面，重定向到首页
-    if (token && pathname === '/auth/signin') {
-      return NextResponse.redirect(new URL('/', request.url))
-    }
-    return NextResponse.next()
-  }
-
-  // 检查用户是否已认证
-  if (!token) {
-    const signInUrl = new URL('/auth/signin', request.url)
-    signInUrl.searchParams.set('callbackUrl', pathname)
-    return NextResponse.redirect(signInUrl)
   }
 
   // 执行权限检查

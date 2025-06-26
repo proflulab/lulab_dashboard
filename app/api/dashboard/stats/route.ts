@@ -2,7 +2,7 @@
  * @Author: 杨仕明 shiming.y@qq.com
  * @Date: 2025-06-20 18:42:52
  * @LastEditors: 杨仕明 shiming.y@qq.com
- * @LastEditTime: 2025-06-20 19:29:04
+ * @LastEditTime: 2025-06-22 11:10:30
  * @FilePath: /lulab_dashboard/app/api/dashboard/stats/route.ts
  * @Description: 仪表板统计数据 API 路由
  * 用于获取仪表板的核心统计指标

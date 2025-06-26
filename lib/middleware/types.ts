@@ -195,7 +195,7 @@ export type PermissionChangeEvent =
 export type PermissionChangeCallback = (
   userId: string,
   event: PermissionChangeEvent,
-  details?: Record<string, any>
+  details?: Record<string, unknown>
 ) => void | Promise<void>
 
 // 权限统计信息

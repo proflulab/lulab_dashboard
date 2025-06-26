@@ -1,17 +1,17 @@
 'use client'
 
-import { Overview } from "@/components/dashboard/overview"
-import { RecentActivities } from "@/components/dashboard/recent-activities"
+// import { Overview } from "@/components/dashboard/overview"
+// import { RecentActivities } from "@/components/dashboard/recent-activities"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+// import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Users,
-  ShoppingCart,
-  TrendingUp,
-  DollarSign,
-  Calendar,
+  // ShoppingCart,
+  // TrendingUp,
+  // DollarSign,
+  // Calendar,
   Activity
 } from "lucide-react"
 import { useState, useEffect } from "react"
@@ -84,14 +84,14 @@ function StatsCardSkeleton() {
 }
 
 function StatsCards({ stats }: { stats: DashboardStats }) {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('zh-CN', {
-      style: 'currency',
-      currency: 'CNY',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount)
-  }
+  // const formatCurrency = (amount: number) => {
+  //   return new Intl.NumberFormat('zh-CN', {
+  //     style: 'currency',
+  //     currency: 'CNY',
+  //     minimumFractionDigits: 0,
+  //     maximumFractionDigits: 0
+  //   }).format(amount)
+  // }
 
   const formatNumber = (num: number) => {
     return new Intl.NumberFormat('zh-CN').format(num)
@@ -114,7 +114,8 @@ function StatsCards({ stats }: { stats: DashboardStats }) {
         </CardContent>
       </Card>
 
-      <Card className="hover:shadow-md transition-shadow">
+      {/* TODO: 会员总数：待开发 */}
+      {/* <Card className="hover:shadow-md transition-shadow">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
             订单总数
@@ -127,9 +128,10 @@ function StatsCards({ stats }: { stats: DashboardStats }) {
             最近7天 <Badge variant="secondary" className="ml-1">{stats.recentOrdersCount}</Badge>
           </p>
         </CardContent>
-      </Card>
+      </Card> */}
 
-      <Card className="hover:shadow-md transition-shadow">
+      {/* TODO:总收入：待开发 */}
+      {/* <Card className="hover:shadow-md transition-shadow">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">总收入</CardTitle>
           <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -140,7 +142,7 @@ function StatsCards({ stats }: { stats: DashboardStats }) {
             平均订单价值 {formatCurrency(stats.averageOrderValue)}
           </p>
         </CardContent>
-      </Card>
+      </Card> */}
 
       <Card className="hover:shadow-md transition-shadow">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -183,7 +185,8 @@ function DashboardContent() {
         <StatsCards stats={stats} />
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4 hover:shadow-md transition-shadow">
+        {/* TODO:会员数据：待开发 */}
+        {/* <Card className="col-span-4 hover:shadow-md transition-shadow">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5" />
@@ -196,8 +199,9 @@ function DashboardContent() {
           <CardContent className="pl-2">
             <Overview />
           </CardContent>
-        </Card>
-        <Card className="col-span-3 hover:shadow-md transition-shadow">
+        </Card> */}
+        {/* TODO:最近活动：待开发 */}
+        {/* <Card className="col-span-3 hover:shadow-md transition-shadow">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
@@ -210,7 +214,7 @@ function DashboardContent() {
           <CardContent>
             <RecentActivities />
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
     </TabsContent>
   )

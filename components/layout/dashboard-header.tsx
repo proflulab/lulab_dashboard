@@ -2,7 +2,7 @@
  * @Author: 杨仕明 shiming.y@qq.com
  * @Date: 2025-06-15 20:03:56
  * @LastEditors: 杨仕明 shiming.y@qq.com
- * @LastEditTime: 2025-06-19 17:42:58
+ * @LastEditTime: 2025-06-27 03:21:45
  * @FilePath: /lulab_dashboard/components/layout/dashboard-header.tsx
  * @Description: 
  * 
@@ -22,9 +22,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { User, LogOut, Settings } from "lucide-react"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import { Bell, Search, User, LogOut, Settings } from "lucide-react"
-import { Input } from "@/components/ui/input"
 
 interface DashboardHeaderProps {
   user?: {
@@ -42,25 +41,27 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
   return (
     <header className="sticky top-0 z-40 border-b bg-white px-6 py-4 shadow-sm h-16">
       <div className="flex items-center justify-between h-full">
+        {/* TODO: 后台管理搜索功能 */}
         <div className="flex items-center space-x-4">
           <SidebarTrigger />
-          <div className="relative">
+          {/* <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder="搜索..."
               className="pl-10 w-64"
             />
-          </div>
+          </div> */}
         </div>
 
         <div className="flex items-center space-x-4">
+          {/* TODO: 后台管理通知按钮 */}
           {/* 通知按钮 */}
-          <Button variant="ghost" size="icon" className="relative">
+          {/* <Button variant="ghost" size="icon" className="relative">
             <Bell className="h-5 w-5" />
             <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full text-xs flex items-center justify-center text-white">
               3
             </span>
-          </Button>
+          </Button> */}
 
           {/* 用户菜单 */}
           <DropdownMenu>
@@ -87,10 +88,12 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem>
+                {/* TODO：个人资料-待开发 */}
                 <User className="mr-2 h-4 w-4" />
                 <span>个人资料</span>
               </DropdownMenuItem>
               <DropdownMenuItem>
+                {/* TODO：设置-待开发 */}
                 <Settings className="mr-2 h-4 w-4" />
                 <span>设置</span>
               </DropdownMenuItem>

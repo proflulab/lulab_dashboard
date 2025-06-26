@@ -60,12 +60,7 @@ export class DashboardService {
                 // 总收入（人民币）
                 prisma.order.aggregate({
                     _sum: {
-                        amountPaidCny: true
-                    },
-                    where: {
-                        amountPaidCny: {
-                            not: null
-                        }
+                        amountCny: true
                     }
                 }),
 
@@ -104,7 +99,7 @@ export class DashboardService {
                 // 有效付费订单数据（用于计算平均订单价值）
                 prisma.order.count({
                     where: {
-                        amountPaidCny: {
+                        amountCny: {
                             gt: 0
                         }
                     }
@@ -112,7 +107,7 @@ export class DashboardService {
             ])
 
             // 计算平均订单价值
-            const revenue = Number(totalRevenue._sum.amountPaidCny) || 0
+            const revenue = Number(totalRevenue._sum.amountCny) || 0
             const averageOrderValue = paidOrdersData > 0 ? revenue / paidOrdersData : 0
 
             return {
@@ -198,14 +193,11 @@ export class DashboardService {
                 // 本月收入
                 prisma.order.aggregate({
                     _sum: {
-                        amountPaidCny: true
+                        amountCny: true
                     },
                     where: {
                         paidAt: {
                             gte: currentMonth
-                        },
-                        amountPaidCny: {
-                            not: null
                         }
                     }
                 }),
@@ -213,23 +205,20 @@ export class DashboardService {
                 // 上月收入
                 prisma.order.aggregate({
                     _sum: {
-                        amountPaidCny: true
+                        amountCny: true
                     },
                     where: {
                         paidAt: {
                             gte: lastMonth,
                             lt: currentMonth
-                        },
-                        amountPaidCny: {
-                            not: null
                         }
                     }
                 })
             ])
 
             // 计算收入数值
-            const currentRevenue = Number(currentMonthRevenue._sum.amountPaidCny) || 0
-            const lastRevenue = Number(lastMonthRevenue._sum.amountPaidCny) || 0
+            const currentRevenue = Number(currentMonthRevenue._sum.amountCny) || 0
+            const lastRevenue = Number(lastMonthRevenue._sum.amountCny) || 0
 
             // 计算增长率
             const userGrowthRate = lastMonthUsers > 0
@@ -290,15 +279,12 @@ export class DashboardService {
                     }),
                     prisma.order.aggregate({
                         _sum: {
-                            amountPaidCny: true
+                            amountCny: true
                         },
                         where: {
                             paidAt: {
                                 gte: dayStart,
                                 lte: dayEnd
-                            },
-                            amountPaidCny: {
-                                not: null
                             }
                         }
                     })
@@ -307,7 +293,7 @@ export class DashboardService {
                 return {
                     date,
                     count: orderCount,
-                    revenue: Number(orderRevenue._sum.amountPaidCny) || 0
+                    revenue: Number(orderRevenue._sum.amountCny) || 0
                 }
             })
 
@@ -341,20 +327,17 @@ export class DashboardService {
                 monthlyRevenuePromises.push(
                     prisma.order.aggregate({
                         _sum: {
-                            amountPaidCny: true
+                            amountCny: true
                         },
                         where: {
                             paidAt: {
                                 gte: monthStart,
                                 lte: monthEnd
-                            },
-                            amountPaidCny: {
-                                not: null
                             }
                         }
                     }).then(result => ({
                         month: monthStart.toISOString().slice(0, 7), // YYYY-MM format
-                        revenue: Number(result._sum.amountPaidCny) || 0
+                        revenue: Number(result._sum.amountCny) || 0
                     }))
                 )
             }
