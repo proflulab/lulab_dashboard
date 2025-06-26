@@ -2,7 +2,7 @@
  * @Author: 杨仕明 shiming.y@qq.com
  * @Date: 2025-06-15 20:02:32
  * @LastEditors: 杨仕明 shiming.y@qq.com
- * @LastEditTime: 2025-06-19 16:30:22
+ * @LastEditTime: 2025-06-27 02:43:18
  * @FilePath: /lulab_dashboard/middleware.ts
  * @Description:
  * Next.js 中间件
@@ -64,40 +64,40 @@ export async function middleware(request: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET
   })
 
-  // 公开页面，无需认证
-  if (isPublicPath(pathname)) {
-    // 如果已登录用户访问登录页面，重定向到首页
-    if (token && pathname === '/auth/signin') {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
-    }
-    return NextResponse.next()
-  }
+  // // 公开页面，无需认证
+  // if (isPublicPath(pathname)) {
+  //   // 如果已登录用户访问登录页面，重定向到首页
+  //   if (token && pathname === '/auth/signin') {
+  //     return NextResponse.redirect(new URL('/dashboard', request.url))
+  //   }
+  //   return NextResponse.next()
+  // }
 
   // 检查用户是否已认证
-  if (!token) {
-    const signInUrl = new URL('/auth/signin', request.url)
-    signInUrl.searchParams.set('callbackUrl', pathname)
-    return NextResponse.redirect(signInUrl)
-  }
+  // if (!token) {
+  //   const signInUrl = new URL('/auth/signin', request.url)
+  //   signInUrl.searchParams.set('callbackUrl', pathname)
+  //   return NextResponse.redirect(signInUrl)
+  // }
 
   // 执行权限检查
-  try {
-    const permissionResult = await permissionMiddleware(request)
-    // 只有在需要重定向或返回错误时才返回结果
-    // NextResponse.next() 表示继续处理，不应该直接返回
-    if (permissionResult && permissionResult.status !== 200) {
-      return permissionResult
-    }
-  } catch (error) {
-    console.error('权限检查失败:', error)
-    // 对于页面路由，权限检查失败时允许继续访问，避免系统完全不可用
-    if (pathname.startsWith('/api/')) {
-      return NextResponse.json(
-        { error: '权限检查失败' },
-        { status: 500 }
-      )
-    }
-  }
+  // try {
+  //   const permissionResult = await permissionMiddleware(request)
+  //   // 只有在需要重定向或返回错误时才返回结果
+  //   // NextResponse.next() 表示继续处理，不应该直接返回
+  //   if (permissionResult && permissionResult.status !== 200) {
+  //     return permissionResult
+  //   }
+  // } catch (error) {
+  //   console.error('权限检查失败:', error)
+  //   // 对于页面路由，权限检查失败时允许继续访问，避免系统完全不可用
+  //   if (pathname.startsWith('/api/')) {
+  //     return NextResponse.json(
+  //       { error: '权限检查失败' },
+  //       { status: 500 }
+  //     )
+  //   }
+  // }
 
   return NextResponse.next()
 }
