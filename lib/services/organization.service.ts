@@ -1,4 +1,25 @@
 import { prisma } from '@/lib/prisma'
+import type { Organization, Department, UserOrganization, UserDepartment, User, UserProfile } from '@prisma/client'
+
+// 定义包含关联关系的组织类型
+type OrganizationWithRelations = Organization & {
+  users?: (UserOrganization & {
+    user: User & {
+      profile?: UserProfile | null
+    }
+  })[]
+  departments?: DepartmentWithRelations[]
+}
+
+// 定义包含关联关系的部门类型
+type DepartmentWithRelations = Department & {
+  users?: (UserDepartment & {
+    user: User & {
+      profile?: UserProfile | null
+    }
+  })[]
+  children?: DepartmentWithRelations[]
+}
 
 // 组织架构节点类型
 export interface OrganizationNode {
@@ -174,10 +195,10 @@ export const organizationService = {
    * const orgNode = organizationService.buildOrganizationNode(dbOrganization)
    * console.log(orgNode.memberCount) // 25
    */
-  buildOrganizationNode(organization: any): OrganizationNode {
+  buildOrganizationNode(organization: OrganizationWithRelations): OrganizationNode {
     // 计算组织下的总人数（包括直接用户和部门用户）
     const directUserCount = organization.users?.length || 0
-    const departmentUserCount = organization.departments?.reduce((total: number, dept: any) => {
+    const departmentUserCount = organization.departments?.reduce((total: number, dept: DepartmentWithRelations) => {
       return total + this.calculateDepartmentUserCount(dept)
     }, 0) || 0
 
@@ -185,8 +206,8 @@ export const organizationService = {
 
     // 构建部门子节点
     const departmentChildren = organization.departments
-      ?.filter((dept: any) => !dept.parentId) // 只获取顶级部门
-      ?.map((dept: any) => this.buildDepartmentNode(dept)) || []
+      ?.filter((dept: DepartmentWithRelations) => !dept.parentId) // 只获取顶级部门
+      ?.map((dept: DepartmentWithRelations) => this.buildDepartmentNode(dept)) || []
 
     return {
       id: organization.id,
@@ -194,7 +215,7 @@ export const organizationService = {
       memberCount: totalMemberCount,
       type: 'company',
       code: organization.code,
-      description: organization.description,
+      description: organization.description || undefined,
       level: organization.level,
       children: departmentChildren,
       isExpanded: true
@@ -208,12 +229,12 @@ export const organizationService = {
    * @param {any} department - 数据库查询的部门对象（包含用户和子部门信息）
    * @returns {OrganizationNode} 格式化的部门节点对象
    */
-  buildDepartmentNode(department: any): OrganizationNode {
+  buildDepartmentNode(department: DepartmentWithRelations): OrganizationNode {
     const memberCount = this.calculateDepartmentUserCount(department)
 
     // 构建子部门节点
     const childDepartments = department.children
-      ?.map((child: any) => this.buildDepartmentNode(child)) || []
+      ?.map((child: DepartmentWithRelations) => this.buildDepartmentNode(child)) || []
 
     // 判断节点类型：如果有子部门则为department，否则为team
     const nodeType = childDepartments.length > 0 ? 'department' : 'team'
@@ -224,9 +245,9 @@ export const organizationService = {
       memberCount,
       type: nodeType,
       code: department.code,
-      description: department.description,
+      description: department.description || undefined,
       level: department.level,
-      parentId: department.parentId,
+      parentId: department.parentId || undefined,
       children: childDepartments.length > 0 ? childDepartments : undefined,
       isExpanded: false
     }
@@ -242,9 +263,9 @@ export const organizationService = {
    * const userCount = organizationService.calculateDepartmentUserCount(department)
    * console.log(userCount) // 15
    */
-  calculateDepartmentUserCount(department: any): number {
+  calculateDepartmentUserCount(department: DepartmentWithRelations): number {
     const directUsers = department.users?.length || 0
-    const childUsers = department.children?.reduce((total: number, child: any) => {
+    const childUsers = department.children?.reduce((total: number, child: DepartmentWithRelations) => {
       return total + this.calculateDepartmentUserCount(child)
     }, 0) || 0
 
@@ -280,7 +301,7 @@ export const organizationService = {
     const { departmentId, page = 1, limit = 50, search } = options
 
     // 构建查询条件
-    const whereConditions: any = {
+    const whereConditions: Record<string, unknown> = {
       OR: [
         // 直接属于组织的用户
         {

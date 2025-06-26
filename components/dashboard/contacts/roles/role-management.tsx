@@ -24,7 +24,9 @@ interface RoleManagementProps {
 /**
  * 角色管理组件
  */
-export function RoleManagement({ canManage: _canManage, searchTerm: _searchTerm }: RoleManagementProps) {
+export function RoleManagement({ canManage, searchTerm }: RoleManagementProps) {
+    // TODO: 实现角色管理功能
+    console.log('canManage:', canManage, 'searchTerm:', searchTerm)
     return (
         <Card>
             <CardHeader>

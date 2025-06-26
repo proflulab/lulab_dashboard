@@ -38,6 +38,20 @@ import {
 import { MenuGuard } from "@/components/auth/permission-guard"
 // import { useSession } from 'next-auth/react' // 暂时不需要
 
+// 定义菜单项类型
+interface MenuItem {
+  title: string
+  url: string
+  permission?: string
+}
+
+interface MenuGroup {
+  title: string
+  groupIcon: React.ComponentType<{ className?: string }>
+  permission?: string
+  items: MenuItem[]
+}
+
 // TODO: 侧边栏设置菜单功能
 // TODO: 侧边栏设置角色管理功能
 // TODO: 侧边栏设置组织管理功能
@@ -131,7 +145,7 @@ interface OrganizationInfo {
 }
 
 // 单独的下拉菜单组件，避免 hooks 规则违反
-function CollapsedDropdownMenu({ group, pathname }: { group: any, pathname: string }) {
+function CollapsedDropdownMenu({ group, pathname }: { group: MenuGroup, pathname: string }) {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
@@ -154,7 +168,7 @@ function CollapsedDropdownMenu({ group, pathname }: { group: any, pathname: stri
             onMouseEnter={() => setIsOpen(true)}
             onMouseLeave={() => setIsOpen(false)}
           >
-            {group.items.map((item: any) => {
+            {group.items.map((item: MenuItem) => {
               const isActive = pathname === item.url
 
               return (

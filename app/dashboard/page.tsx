@@ -1,17 +1,17 @@
 'use client'
 
 // import { Overview } from "@/components/dashboard/overview"
-import { RecentActivities } from "@/components/dashboard/recent-activities"
+// import { RecentActivities } from "@/components/dashboard/recent-activities"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 // import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Users,
   // ShoppingCart,
   // TrendingUp,
   // DollarSign,
-  Calendar,
+  // Calendar,
   Activity
 } from "lucide-react"
 import { useState, useEffect } from "react"
@@ -84,14 +84,14 @@ function StatsCardSkeleton() {
 }
 
 function StatsCards({ stats }: { stats: DashboardStats }) {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('zh-CN', {
-      style: 'currency',
-      currency: 'CNY',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount)
-  }
+  // const formatCurrency = (amount: number) => {
+  //   return new Intl.NumberFormat('zh-CN', {
+  //     style: 'currency',
+  //     currency: 'CNY',
+  //     minimumFractionDigits: 0,
+  //     maximumFractionDigits: 0
+  //   }).format(amount)
+  // }
 
   const formatNumber = (num: number) => {
     return new Intl.NumberFormat('zh-CN').format(num)

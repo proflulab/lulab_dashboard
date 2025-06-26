@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { organizationService } from '@/lib/services/organization.service'
+// import { organizationService } from '@/lib/services/organization.service'
 import { PermissionService } from '@/lib/services/permission.service'
 import { departmentService } from '@/lib/services/department.service'
 

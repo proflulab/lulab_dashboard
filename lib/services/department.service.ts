@@ -10,6 +10,17 @@
  */
 
 import { prisma } from '@/lib/prisma'
+import type { Department, UserDepartment, User, UserProfile } from '@prisma/client'
+
+// 定义包含关联关系的部门类型
+type DepartmentWithRelations = Department & {
+  users?: (UserDepartment & {
+    user: User & {
+      profile?: UserProfile | null
+    }
+  })[]
+  children?: DepartmentWithRelations[]
+}
 
 // 部门节点类型
 export interface DepartmentNode {
@@ -223,12 +234,12 @@ export const departmentService = {
     /**
      * 构建部门节点
      */
-    async buildDepartmentNode(department: any): Promise<DepartmentNode> {
+    buildDepartmentNode(department: DepartmentWithRelations): DepartmentNode {
         const memberCount = this.calculateDepartmentUserCount(department)
 
         // 构建子部门节点
         const childDepartments = department.children
-            ?.map((child: any) => this.buildDepartmentNode(child)) || []
+            ?.map((child: DepartmentWithRelations) => this.buildDepartmentNode(child)) || []
 
         // 判断节点类型：如果有子部门则为department，否则为team
         const nodeType = childDepartments.length > 0 ? 'department' : 'team'
@@ -239,9 +250,9 @@ export const departmentService = {
             memberCount: memberCount,
             type: nodeType,
             code: department.code,
-            description: department.description,
+            description: department.description || undefined,
             level: department.level,
-            parentId: department.parentId,
+            parentId: department.parentId || undefined,
             children: childDepartments.length > 0 ? childDepartments : undefined,
             isExpanded: false
         }
@@ -251,9 +262,9 @@ export const departmentService = {
     /**
      * 计算部门用户数量（同步版本，包括子部门）
      */
-    calculateDepartmentUserCount(department: any): number {
+    calculateDepartmentUserCount(department: DepartmentWithRelations): number {
         const directUsers = department.users?.length || 0
-        const childUsers = department.children?.reduce((total: number, child: any) => {
+        const childUsers = department.children?.reduce((total: number, child: DepartmentWithRelations) => {
             return total + this.calculateDepartmentUserCount(child)
         }, 0) || 0
 

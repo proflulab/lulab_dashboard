@@ -18,7 +18,9 @@ import { OrganizationService } from '@/services/organization.service'
 import { DepartmentNode } from '@/types/member'
 
 export function AddChildDepartmentDialog() {
-    const { isAddChildDepartmentOpen, addChildParentNodeId, addChildParentNodeName, closeAddChildDepartment, loadInitialData, orgData } = useOrganizationStore()
+    const { isAddChildDepartmentOpen, addChildParentNodeId, closeAddChildDepartment, loadInitialData, orgData } = useOrganizationStore()
+    // TODO: 使用父节点名称显示在表单中
+    // const addChildParentNodeName = useOrganizationStore(state => state.addChildParentNodeName)
     const [formData, setFormData] = useState({
         name: '',
         description: '',

@@ -36,7 +36,7 @@ export function MembersTab() {
   // 数据加载
   useEffect(() => {
     loadInitialData()
-  }, [])
+  }, [loadInitialData])
 
   return (
     <div className="space-y-1">

@@ -65,7 +65,7 @@ export async function GET(
     }
 
     // 构建查询条件
-    const whereConditions: any = {
+    const whereConditions: Record<string, unknown> = {
       OR: [
         // 直接属于组织的用户
         {

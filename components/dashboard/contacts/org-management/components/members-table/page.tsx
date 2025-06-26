@@ -13,7 +13,7 @@
 
 import React from "react"
 import { DataTable } from "./data-table"
-import { memberColumns } from "./columns"
+import { createMemberColumns } from "./columns"
 import { useOrganizationStore } from "@/stores/org-management-store"
 
 export function MembersPage() {
@@ -23,6 +23,6 @@ export function MembersPage() {
     } = useOrganizationStore()
 
     return (
-        <DataTable columns={memberColumns} data={members} />
+        <DataTable columns={createMemberColumns()} data={members} />
     )
 }

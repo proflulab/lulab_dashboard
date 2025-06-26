@@ -15,9 +15,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Checkbox } from "@/components/ui/checkbox"
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react"
 import { Member } from "@/types/member"
-import { useOrganizationStore } from "@/stores/org-management-store"
+// import { useOrganizationStore } from "@/stores/org-management-store"
 
-export const memberColumns: ColumnDef<Member>[] = [
+export const createMemberColumns = (): ColumnDef<Member>[] => {
+    return [
     {
         id: "select",
         header: ({ table }) => (
@@ -128,7 +129,6 @@ export const memberColumns: ColumnDef<Member>[] = [
         header: "操作",
         cell: ({ row }) => {
             const member = row.original
-            const { openMemberDetail } = useOrganizationStore()
 
             return (
                 <div className="flex items-center space-x-1">
@@ -136,7 +136,10 @@ export const memberColumns: ColumnDef<Member>[] = [
                         variant="ghost"
                         size="sm"
                         className="h-8 px-1 text-blue-600"
-                        onClick={() => openMemberDetail(member)}
+                        onClick={() => {
+                            // TODO: 实现成员详情功能
+                            console.log('Open member detail:', member)
+                        }}
                     >
                         详情
                     </Button>
@@ -163,4 +166,5 @@ export const memberColumns: ColumnDef<Member>[] = [
             )
         },
     },
-]
+    ]
+}

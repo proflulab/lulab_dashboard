@@ -1,5 +1,6 @@
 import React from 'react'
 import { Network, ChevronDown, ChevronRight, MoreHorizontal } from 'lucide-react'
+import Image from 'next/image'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -26,9 +27,11 @@ export function DepartmentNodeComponent({
                 return (
                     <div className="w-6 h-6 rounded flex-shrink-0 overflow-hidden">
                         {node.logo ? (
-                            <img
+                            <Image
                                 src={node.logo}
                                 alt={text}
+                                width={24}
+                                height={24}
                                 className="w-full h-full object-cover"
                             />
                         ) : (

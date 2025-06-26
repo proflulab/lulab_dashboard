@@ -2,7 +2,7 @@
  * @Author: 杨仕明 shiming.y@qq.com
  * @Date: 2025-06-15 20:03:56
  * @LastEditors: 杨仕明 shiming.y@qq.com
- * @LastEditTime: 2025-06-26 17:21:28
+ * @LastEditTime: 2025-06-26 18:35:12
  * @FilePath: /lulab_dashboard/components/layout/dashboard-header.tsx
  * @Description: 
  * 
@@ -22,9 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { SidebarTrigger } from "@/components/ui/sidebar"
-import { Bell, Search, User, LogOut, Settings } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { User, LogOut, Settings } from "lucide-react"
 
 interface DashboardHeaderProps {
   user?: {

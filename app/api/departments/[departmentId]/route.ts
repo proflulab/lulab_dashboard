@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { organizationService } from '@/lib/services/organization.service'
+import { departmentService } from '@/lib/services/department.service'
 import { PermissionService } from '@/lib/services/permission.service'
 
 /**
@@ -41,7 +41,7 @@ export async function GET(
         }
 
         // 获取部门详情
-        const department = await organizationService.getDepartmentById(departmentId)
+        const department = await departmentService.getDepartmentById(departmentId)
 
         if (!department) {
             return NextResponse.json(
@@ -108,7 +108,7 @@ export async function PUT(
         }
 
         // 更新部门
-        const updatedDepartment = await organizationService.updateDepartment(departmentId, {
+        const updatedDepartment = await departmentService.updateDepartment(departmentId, {
             name: name.trim(),
             description: description?.trim(),
             parentId
@@ -160,7 +160,7 @@ export async function DELETE(
         }
 
         // 删除部门
-        await organizationService.deleteDepartment(departmentId)
+        await departmentService.deleteDepartment(departmentId)
 
         return NextResponse.json({
             success: true,

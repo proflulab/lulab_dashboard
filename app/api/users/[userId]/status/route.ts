@@ -66,6 +66,7 @@ export async function PUT(
     })
 
     // 返回更新后的用户信息（不包含密码）
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...userWithoutPassword } = updatedUser
 
     return NextResponse.json({

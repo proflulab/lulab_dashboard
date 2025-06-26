@@ -14,7 +14,8 @@ import { prisma } from '@/lib/prisma'
 import { auth } from '@/auth'
 import { PermissionService } from '@/lib/services/permission.service'
 
-export async function GET(request: NextRequest) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function GET(_request: NextRequest) {
   try {
     const session = await auth()
 

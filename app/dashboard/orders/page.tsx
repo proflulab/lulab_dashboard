@@ -18,89 +18,89 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Plus, MoreHorizontal, Edit, Trash2, Eye, CreditCard, Package, DollarSign } from "lucide-react"
 
-import { Decimal } from '@prisma/client/runtime/library'
+// import { Decimal } from '@prisma/client/runtime/library'
 
-interface OrderWithRelations {
-  id: number
-  orderCode: string
-  externalOrderId?: string
-  productName?: string
-  customerEmail?: string
-  userId?: string
-  currentOwnerId?: string
-  financialCloserId?: string
-  financialClosedAt?: Date
-  financialClosed: boolean
-  amountPaid?: Decimal | null
-  currency?: string
-  amountPaidCny?: Decimal | null
-  paidAt?: Date
-  effectiveDate?: Date
-  benefitStartDate?: Date
-  benefitDurationDays?: number
-  activeDays?: number
-  benefitDaysRemaining?: number
-  createdAt: Date
-  updatedAt: Date
-  user?: {
-    id: string
-    name?: string
-    email: string
-    image?: string
-  }
-  currentOwner?: {
-    id: string
-    name?: string
-    email: string
-  }
-  financialCloser?: {
-    id: string
-    name?: string
-    email: string
-  }
-  refunds: Array<{
-    id: number
-    afterSaleCode?: string
-    orderId?: number
-    submittedAt?: Date
-    refundedAt?: Date
-    refundChannel?: string
-    approvalUrl?: string
-    createdBy?: string
-    refundAmount?: Decimal
-    refundReason?: string
-    benefitEndedAt?: Date
-    benefitUsedDays?: number
-    applicantName?: string
-    isFinancialSettled: boolean
-    financialSettledAt?: Date
-    financialNote?: string
-    parentId?: number
-    productCategory?: string
-    createdAt: Date
-    updatedAt: Date
-    creator?: {
-      id: string
-      name?: string | null
-      email: string
-      createdAt: Date
-      updatedAt: Date
-      password?: string | null
-      emailVerifiedAt?: Date | null
-      avatar?: string | null
-    }
-  }>
-}
+// interface OrderWithRelations {
+//   id: number
+//   orderCode: string
+//   externalOrderId?: string
+//   productName?: string
+//   customerEmail?: string
+//   userId?: string
+//   currentOwnerId?: string
+//   financialCloserId?: string
+//   financialClosedAt?: Date
+//   financialClosed: boolean
+//   amountPaid?: Decimal | null
+//   currency?: string
+//   amountPaidCny?: Decimal | null
+//   paidAt?: Date
+//   effectiveDate?: Date
+//   benefitStartDate?: Date
+//   benefitDurationDays?: number
+//   activeDays?: number
+//   benefitDaysRemaining?: number
+//   createdAt: Date
+//   updatedAt: Date
+//   user?: {
+//     id: string
+//     name?: string
+//     email: string
+//     image?: string
+//   }
+//   currentOwner?: {
+//     id: string
+//     name?: string
+//     email: string
+//   }
+//   financialCloser?: {
+//     id: string
+//     name?: string
+//     email: string
+//   }
+//   refunds: Array<{
+//     id: number
+//     afterSaleCode?: string
+//     orderId?: number
+//     submittedAt?: Date
+//     refundedAt?: Date
+//     refundChannel?: string
+//     approvalUrl?: string
+//     createdBy?: string
+//     refundAmount?: Decimal
+//     refundReason?: string
+//     benefitEndedAt?: Date
+//     benefitUsedDays?: number
+//     applicantName?: string
+//     isFinancialSettled: boolean
+//     financialSettledAt?: Date
+//     financialNote?: string
+//     parentId?: number
+//     productCategory?: string
+//     createdAt: Date
+//     updatedAt: Date
+//     creator?: {
+//       id: string
+//       name?: string | null
+//       email: string
+//       createdAt: Date
+//       updatedAt: Date
+//       password?: string | null
+//       emailVerifiedAt?: Date | null
+//       avatar?: string | null
+//     }
+//   }>
+// }
 
 export default async function OrdersPage() {
-  const orders = await orderService.getAll() as OrderWithRelations[]
+  const orders = await orderService.getAll()
 
   // 统计数据
   const totalRevenue = orders.filter((o) => o.financialClosed).reduce((sum: number, order) => {
-    const amount = order.amountPaidCny ? order.amountPaidCny.toNumber() : 0
+    const amount = order.amountCny ? order.amountCny : 0
     return sum + amount
   }, 0)
   const pendingOrders = orders.filter((o) => !o.financialClosed).length
@@ -211,13 +211,12 @@ export default async function OrdersPage() {
                     <TableCell>
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={order.user?.image || ''} />
                           <AvatarFallback>
-                            {(order.user?.name || order.customerEmail || 'U').charAt(0).toUpperCase()}
+                            {(order.user?.email || order.customerEmail || 'U').charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-medium">{order.user?.name || '未知用户'}</div>
+                          <div className="font-medium">{order.user?.email || order.customerEmail || '未知用户'}</div>
                           <div className="text-sm text-muted-foreground">
                             {order.user?.email || order.customerEmail || '无邮箱'}
                           </div>
@@ -229,10 +228,10 @@ export default async function OrdersPage() {
                     </TableCell>
                     <TableCell>
                       <div className="font-medium text-green-600">
-                        {order.currency === 'USD' ? '$' : '¥'}{order.amountPaid ? order.amountPaid.toNumber().toLocaleString() : '0'}
-                        {order.currency === 'USD' && order.amountPaidCny && (
+                        {order.currency === 'USD' ? '$' : '¥'}{order.amount || 0}
+                        {order.currency === 'USD' && order.amountCny && (
                           <div className="text-xs text-muted-foreground">
-                            ≈ ¥{order.amountPaidCny.toNumber().toLocaleString()}
+                            ≈ ¥{order.amountCny}
                           </div>
                         )}
                       </div>

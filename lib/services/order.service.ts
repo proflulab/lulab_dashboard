@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { Currency } from '@prisma/client'
 
 // 订单相关操作
 export const orderService = {
@@ -40,14 +41,15 @@ export const orderService = {
 
   async create(data: {
     orderCode: string
+    orderNumber: string
     externalOrderId?: string
     productName?: string
     customerEmail?: string
     userId?: string
     currentOwnerId?: string
-    amountPaid?: number
-    currency?: string
-    amountPaidCny?: number
+    amount: number
+    currency?: Currency
+    amountCny: number
     paidAt?: Date
     effectiveDate?: Date
     benefitStartDate?: Date
@@ -55,8 +57,13 @@ export const orderService = {
     activeDays?: number
     benefitDaysRemaining?: number
   }) {
+    const { userId, currentOwnerId, ...orderData } = data
     return await prisma.order.create({
-      data,
+      data: {
+        ...orderData,
+        ...(userId && { user: { connect: { id: userId } } }),
+        ...(currentOwnerId && { currentOwner: { connect: { id: currentOwnerId } } }),
+      },
       include: {
         user: true,
         currentOwner: true,
@@ -68,6 +75,7 @@ export const orderService = {
 
   async update(id: string, data: Partial<{
     orderCode: string
+    orderNumber: string
     externalOrderId: string
     productName: string
     customerEmail: string
@@ -76,9 +84,9 @@ export const orderService = {
     financialCloserId: string
     financialClosedAt: Date
     financialClosed: boolean
-    amountPaid: number
-    currency: string
-    amountPaidCny: number
+    amount: number
+    currency: Currency
+    amountCny: number
     paidAt: Date
     effectiveDate: Date
     benefitStartDate: Date
@@ -86,9 +94,15 @@ export const orderService = {
     activeDays: number
     benefitDaysRemaining: number
   }>) {
+    const { userId, currentOwnerId, financialCloserId, ...orderData } = data
     return await prisma.order.update({
       where: { id },
-      data,
+      data: {
+        ...orderData,
+        ...(userId && { user: { connect: { id: userId } } }),
+        ...(currentOwnerId && { currentOwner: { connect: { id: currentOwnerId } } }),
+        ...(financialCloserId && { financialCloser: { connect: { id: financialCloserId } } }),
+      },
       include: {
         user: true,
         currentOwner: true,

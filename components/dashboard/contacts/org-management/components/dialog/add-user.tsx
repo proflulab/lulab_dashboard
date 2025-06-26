@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useOrganizationStore } from '@/stores/org-management-store'
-import { MemberService } from '@/services/member.service'
+// import { MemberService } from '@/services/member.service' // TODO: 实现用户添加功能时使用
 
 interface AddUserDialogProps {
     isOpen: boolean
@@ -26,9 +26,11 @@ interface AddUserDialogProps {
 export function AddUserDialog({
     isOpen,
     onClose,
-    departmentId,
+    departmentId: _departmentId,
     departmentName
 }: AddUserDialogProps) {
+    // TODO: 实现部门ID的使用
+    console.log('departmentId:', _departmentId)
     const [formData, setFormData] = useState({
         name: '',
         email: '',
