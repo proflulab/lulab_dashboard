@@ -22,7 +22,7 @@ interface OrganizationState {
   selectedNodeId: string
   loading: boolean
 
-  // 成员相关状态
+  // 成员数据状态
   members: Member[]
 
   // UI 相关状态
@@ -153,13 +153,6 @@ export const useOrganizationStore = create<OrganizationStore>()(devtools(
         }
       } catch (error) {
         console.error('Error loading members:', error)
-        // 如果获取失败，则获取所有成员作为备选
-        try {
-          const allMembers = await MemberService.fetchOrganizationMembers()
-          set({ members: allMembers })
-        } catch (fallbackError) {
-          console.error('Error loading organization members:', fallbackError)
-        }
       }
     },
 

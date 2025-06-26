@@ -2,7 +2,7 @@
  * @Author: 杨仕明 shiming.y@qq.com
  * @Date: 2025-06-23 02:34:33
  * @LastEditors: 杨仕明 shiming.y@qq.com
- * @LastEditTime: 2025-06-26 14:13:48
+ * @LastEditTime: 2025-06-26 17:03:40
  * @FilePath: /lulab_dashboard/components/dashboard/contacts/org-management/components/department-tree/department-panel.tsx
  * @Description: 
  * 
@@ -42,7 +42,7 @@ export function DepartmentPanel() {
         <>
             <div className="w-80 flex-shrink-0 transition-all duration-300">
                 <Card className="h-fit">
-                    {/*TODO: '待开发 - 部门/用户搜索,可以搜索员工或者部门，当点击员工可以显示侧边栏，当点击部门可以跳转到该部门用户列表'*/}
+                    {/* TODO: 待开发 - 部门/用户搜索,可以搜索员工或者部门，当点击员工可以显示侧边栏，当点击部门可以跳转到该部门用户列表 */}
                     <CardHeader>
                         <div className="flex items-center justify-between mb-1">
                             <div className="relative flex-1 mr-2">

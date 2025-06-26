@@ -22,7 +22,7 @@ import {
   Users,
   // BookOpen, // 暂时不需要
   // GraduationCap, // 暂时不需要
-  Settings,
+  // Settings,
   // BarChart, // 暂时不需要
   // ShoppingCart, // 暂时不需要
   ChevronRight,
@@ -38,6 +38,9 @@ import {
 import { MenuGuard } from "@/components/auth/permission-guard"
 // import { useSession } from 'next-auth/react' // 暂时不需要
 
+// TODO: 侧边栏设置菜单功能
+// TODO: 侧边栏设置角色管理功能
+// TODO: 侧边栏设置组织管理功能
 const menuItems = [
   {
     title: "概览",
@@ -61,16 +64,16 @@ const menuItems = [
         url: "/dashboard/contacts/org-management",
         permission: "dashboard.view",
       },
-      {
-        title: "角色管理",
-        url: "/dashboard/contacts/roles",
-        permission: "dashboard.view",
-      },
-      {
-        title: "组织管理",
-        url: "/dashboard/perms",
-        permission: "dashboard.view",
-      },
+      // {
+      //   title: "角色管理",
+      //   url: "/dashboard/contacts/roles",
+      //   permission: "dashboard.view",
+      // },
+      // {
+      //   title: "组织管理",
+      //   url: "/dashboard/perms",
+      //   permission: "dashboard.view",
+      // },
     ],
   },
   // {
@@ -107,18 +110,18 @@ const menuItems = [
   //     },
   //   ],
   // },
-  {
-    title: "系统",
-    groupIcon: Settings,
-    permission: "system.settings",
-    items: [
-      {
-        title: "系统设置",
-        url: "/dashboard/settings",
-        permission: "system.settings",
-      },
-    ],
-  },
+  // {
+  //   title: "系统",
+  //   groupIcon: Settings,
+  //   permission: "system.settings",
+  //   items: [
+  //     {
+  //       title: "系统设置",
+  //       url: "/dashboard/settings",
+  //       permission: "system.settings",
+  //     },
+  //   ],
+  // },
 ]
 
 interface OrganizationInfo {
